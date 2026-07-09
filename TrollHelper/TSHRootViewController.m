@@ -1,4 +1,4 @@
-#import "TSHRootViewController.h"
+﻿#import "TSHRootViewController.h"
 #import <TSUtil.h>
 #import <TSPresentationDelegate.h>
 
@@ -178,7 +178,7 @@
 			}
 			else if(!persistenceHelperProxy)
 			{
-				bottomText = @"如果您想使用此应用作为巨魔商店持久化助手，可以在此处注册。注册后可以刷新巨魔应用注册，防止应用变成"用户"状态无法打开。点击下方按钮完成注册。";
+				bottomText = @"如果您想使用此应用作为巨魔商店持久化助手，可以在此处注册。注册后可以刷新巨魔应用注册，防止应用变成「用户」状态无法打开。点击下方按钮完成注册。";
 				registerUnregisterSpecifier = [PSSpecifier preferenceSpecifierNamed:@"注册持久化助手"
 												target:self
 												set:nil
@@ -218,7 +218,7 @@
 	}
 	else
 	{
-		return [NSString stringWithFormat:@"已安装，%@, version];
+		return [NSString stringWithFormat:@"已安装，%@", version];
 	}
 }
 

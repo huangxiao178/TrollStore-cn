@@ -38,16 +38,16 @@
 		_specifiers = [NSMutableArray new];
 
 		#ifdef LEGACY_CT_BUG
-		NSString* credits = @"Powered by Fugu15 CoreTrust & installd bugs, thanks to @LinusHenze\n\n© 2022-2026 Lars Fröder (opa334)";
+		NSString* credits = @"如果出现巨魔打不开的情况，可以点击刷新应用注册恢复巨魔！\n基于作者优化，尊重原创！\n如有疑问联系V：Xumeijie0927 注明来意";
 		#else
-		NSString* credits = @"Powered by CVE-2023-41991, originally discovered by Google TAG, rediscovered via patchdiffing by @alfiecg_dev\n\n© 2022-2026 Lars Fröder (opa334)";
+		NSString* credits = @"如果出现巨魔打不开的情况，可以点击刷新应用注册恢复巨魔！\n基于作者优化，尊重原创！\n如有疑问联系V：Xumeijie0927 注明来意";
 		#endif
 
 		PSSpecifier* infoGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
-		infoGroupSpecifier.name = @"Info";
+		infoGroupSpecifier.name = @"信息";
 		[_specifiers addObject:infoGroupSpecifier];
 
-		PSSpecifier* infoSpecifier = [PSSpecifier preferenceSpecifierNamed:@"TrollStore"
+		PSSpecifier* infoSpecifier = [PSSpecifier preferenceSpecifierNamed:@"巨魔商店"
 											target:self
 											set:nil
 											get:@selector(getTrollStoreInfoString)
@@ -63,7 +63,7 @@
 
 		if(_newerVersion && isInstalled)
 		{
-			PSSpecifier* updateTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:[NSString stringWithFormat:@"Update TrollStore to %@", _newerVersion]
+			PSSpecifier* updateTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:[NSString stringWithFormat:@"更新巨魔商店至 %@", _newerVersion]
 										target:self
 										set:nil
 										get:nil
@@ -85,7 +85,7 @@
 
 		if(isInstalled || trollStoreInstalledAppContainerPaths().count)
 		{
-			PSSpecifier* refreshAppRegistrationsSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Refresh App Registrations"
+			PSSpecifier* refreshAppRegistrationsSpecifier = [PSSpecifier preferenceSpecifierNamed:@"刷新应用注册"
 												target:self
 												set:nil
 												get:nil
@@ -99,7 +99,7 @@
 		}
 		if(isInstalled)
 		{
-			PSSpecifier* uninstallTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Uninstall TrollStore"
+			PSSpecifier* uninstallTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:@"卸载巨魔商店"
 										target:self
 										set:nil
 										get:nil
@@ -114,7 +114,7 @@
 		}
 		else
 		{
-			PSSpecifier* installTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Install TrollStore"
+			PSSpecifier* installTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:@"安装巨魔商店"
 												target:self
 												set:nil
 												get:nil
@@ -134,7 +134,7 @@
 			[_specifiers addObject:uninstallHelperGroupSpecifier];
 			lastGroupSpecifier = uninstallHelperGroupSpecifier;
 
-			PSSpecifier* uninstallPersistenceHelperSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Uninstall Persistence Helper"
+			PSSpecifier* uninstallPersistenceHelperSpecifier = [PSSpecifier preferenceSpecifierNamed:@"卸载持久化助手"
 												target:self
 												set:nil
 												get:nil
@@ -162,8 +162,8 @@
 
 			if(isRegistered)
 			{
-				bottomText = @"This app is registered as the TrollStore persistence helper and can be used to fix TrollStore app registrations in case they revert back to \"User\" state and the apps say they're unavailable.";
-				registerUnregisterSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Unregister Persistence Helper"
+				bottomText = @"如果需要恢复巨魔应用注册或巨魔出现闪退打不开，可以点击下面的刷新应用注册恢复巨魔！";
+				registerUnregisterSpecifier = [PSSpecifier preferenceSpecifierNamed:@"取消注册持久化助手"
 												target:self
 												set:nil
 												get:nil
@@ -177,8 +177,8 @@
 			}
 			else if(!persistenceHelperProxy)
 			{
-				bottomText = @"If you want to use this app as the TrollStore persistence helper, you can register it here.";
-				registerUnregisterSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Register Persistence Helper"
+				bottomText = @"如果您想使用此应用作为巨魔商店持久化助手，可以在此处注册。";
+				registerUnregisterSpecifier = [PSSpecifier preferenceSpecifierNamed:@"注册持久化助手"
 												target:self
 												set:nil
 												get:nil
@@ -204,7 +204,7 @@
 		}
 	}
 	
-	[(UINavigationItem *)self.navigationItem setTitle:@"TrollStore Helper"];
+	[(UINavigationItem *)self.navigationItem setTitle:@"巨魔商店助手"];
 	return _specifiers;
 }
 
@@ -213,11 +213,11 @@
 	NSString* version = [self getTrollStoreVersion];
 	if(!version)
 	{
-		return @"Not Installed";
+		return @"未安装";
 	}
 	else
 	{
-		return [NSString stringWithFormat:@"Installed, %@", version];
+		return [NSString stringWithFormat:@"已安装，%@", version];
 	}
 }
 

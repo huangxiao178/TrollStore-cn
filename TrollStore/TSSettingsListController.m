@@ -217,7 +217,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 			if(ldidInstalled)
 			{
-				NSString* installedTitle = @"ldid: Installed";
+				NSString* installedTitle = @"ldid：已安装";
 				if(ldidVersion)
 				{
 					installedTitle = [NSString stringWithFormat:@"%@ (%@)", installedTitle, ldidVersion];
@@ -236,7 +236,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 				if(_newerLdidVersion && ![_newerLdidVersion isEqualToString:ldidVersion])
 				{
-					NSString* updateTitle = [NSString stringWithFormat:@"Update to %@", _newerLdidVersion];
+					NSString* updateTitle = [NSString stringWithFormat:@"更新到 %@", _newerLdidVersion];
 					PSSpecifier* ldidUpdateSpecifier = [PSSpecifier preferenceSpecifierNamed:updateTitle
 												target:self
 												set:nil
@@ -252,7 +252,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 			}
 			else
 			{
-				PSSpecifier* installLdidSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Install ldid"
+				PSSpecifier* installLdidSpecifier = [PSSpecifier preferenceSpecifierNamed:@"安装 ldid"
 												target:self
 												set:nil
 												get:nil
@@ -423,7 +423,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		[_specifiers addObject:doTheDashSpecifier];*/
 	}
 
-	[(UINavigationItem *)self.navigationItem setTitle:@"Settings"];
+	[(UINavigationItem *)self.navigationItem setTitle:@"设置"];
 	return _specifiers;
 }
 

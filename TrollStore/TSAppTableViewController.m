@@ -465,14 +465,14 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 	NSString* switchState;
 	NSString* registrationState = [appInfo registrationState];
 	UIAlertActionStyle switchActionStyle = 0;
-	if([registrationState isEqualToString:@"System"])
+	if([registrationState isEqualToString:@"系统"])
 	{
 		switchState = @"User";
 		switchActionStyle = UIAlertActionStyleDestructive;
 	}
 	else if([registrationState isEqualToString:@"User"])
 	{
-		switchState = @"System";
+		switchState = @"系统";
 		switchActionStyle = UIAlertActionStyleDefault;
 	}
 

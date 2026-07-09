@@ -1,0 +1,53 @@
+/* TrollStore CN Localization */
+
+/* Main UI */
+"TrollStore" = "巨魔商店";
+"Settings" = "设置";
+"Install TrollStore" = "安装巨魔商店";
+"Installing TrollStore" = "正在安装巨魔商店";
+"Update TrollStore to %@" = "更新巨魔商店至 %@";
+"Updating TrollStore" = "正在更新巨魔商店";
+"Uninstall" = "卸载";
+"Uninstall TrollStore" = "卸载巨魔商店";
+"Uninstall TrollStore, Preserve Apps" = "卸载巨魔商店，保留应用";
+"Uninstall TrollStore, Uninstall Apps" = "卸载巨魔商店，卸载所有应用";
+"Respring" = "重启桌面";
+"Refresh App Registrations" = "刷新应用注册";
+"Refreshing" = "正在刷新";
+"Rebuild Icon Cache" = "重建图标缓存";
+"Rebuilding Icon Cache" = "正在重建图标缓存";
+"Register Persistence Helper" = "注册持久化助手";
+"Unregister Persistence Helper" = "取消注册持久化助手";
+"Uninstall Persistence Helper" = "卸载持久化助手";
+"PersistenceHelper" = "持久化助手";
+
+/* Alerts */
+"Error" = "错误";
+"Close" = "关闭";
+"OK" = "确定";
+"Cancel" = "取消";
+"Continue" = "继续";
+"Warning" = "警告";
+"Not Installed" = "未安装";
+"Installed, %@" = "已安装，%@";
+
+/* Error Messages */
+"Error downloading TrollStore: %@" = "下载巨魔商店失败：%@";
+"Error installing TrollStore: trollstorehelper returned %d" = "安装巨魔商店失败：trollstorehelper 返回 %d";
+
+/* Persistence Helper */
+"TrollStore Helper" = "巨魔商店助手";
+"This app is registered as the TrollStore persistence helper and can be used to fix TrollStore app registrations in case they revert back to \"User\" state and the apps say they're unavailable." = "此应用已注册为巨魔商店持久化助手，可用于修复巨魔商店应用注册问题。";
+"Uninstalling the persistence helper will revert this app back to it's original state, you will however no longer be able to persistently refresh the TrollStore app registrations. Continue?" = "卸载持久化助手将使此应用恢复原始状态，您将无法再持续刷新巨魔商店的应用注册。继续？";
+"TrollStore - Reload persistence helper" = "巨魔商店 - 重新加载持久化助手";
+"TrollStore - App updated" = "巨魔商店 - 应用已更新";
+"If you want to use this app as the TrollStore persistence helper, you can register it here." = "如果您想使用此应用作为巨魔商店持久化助手，可以在此处注册。";
+
+/* Update */
+"Uninstall TrollStore, do you want to preserve the apps installed by it?" = "卸载巨魔商店，是否保留已安装的应用？";
+
+/* Generic */
+"Users" = "用户";
+"System" = "系统";
+"Version" = "版本";
+"Size" = "大小";

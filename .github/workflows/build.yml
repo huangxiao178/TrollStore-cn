@@ -51,25 +51,26 @@ jobs:
           echo "Creating $FW stub..."
           sudo mkdir -p "$FW_DIR"
           
-          # .tbd stub
-          sudo tee "$FW_DIR/$FW.tbd" > /dev/null << 'ENDOFTBD'
---- !tapi-tbd
-tbd-version: 4
-targets: [ arm64, arm64e ]
-uuids:
-  - target: arm64
-    value: 00000000-0000-0000-0000-000000000000
-  - target: arm64e
-    value: 00000000-0000-0000-0000-000000000000
-flags: [ flat_namespace, not_app_extension_safe ]
-install-name: /System/Library/PrivateFrameworks/STUB.framework/STUB
-current-version: 1
-compatibility-version: 1
-exports:
-  - archs: [ arm64, arm64e ]
-    symbols: [ _fake_symbol_for_linking ]
-ENDOFTBD
-          
+          python3 -c "
+import os
+f='$FW_DIR/$FW.tbd'
+with open(f,'w') as fh:
+    fh.write('--- !tapi-tbd\n')
+    fh.write('tbd-version: 4\n')
+    fh.write('targets: [ arm64, arm64e ]\n')
+    fh.write('uuids:\n')
+    fh.write('  - target: arm64\n')
+    fh.write('    value: 00000000-0000-0000-0000-000000000000\n')
+    fh.write('  - target: arm64e\n')
+    fh.write('    value: 00000000-0000-0000-0000-000000000000\n')
+    fh.write('flags: [ flat_namespace, not_app_extension_safe ]\n')
+    fh.write('install-name: /System/Library/PrivateFrameworks/STUB.framework/STUB\n')
+    fh.write('current-version: 1\n')
+    fh.write('compatibility-version: 1\n')
+    fh.write('exports:\n')
+    fh.write('  - archs: [ arm64, arm64e ]\n')
+    fh.write('    symbols: [ _fake_symbol_for_linking ]\n')
+"
           # Fix the install-name for this specific framework
           sudo sed -i '' "s|STUB.framework|$FW.framework|g" "$FW_DIR/$FW.tbd"
           sudo sed -i '' "s|/STUB$|/$FW|g" "$FW_DIR/$FW.tbd"

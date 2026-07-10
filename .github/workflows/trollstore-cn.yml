@@ -22,7 +22,7 @@ jobs:
         PRIV_FW="$SDK_PATH/System/Library/PrivateFrameworks"
         for FW in Preferences MobileContainerManager SpringBoardServices BackBoardServices FrontBoardServices; do
           FW_DIR="$PRIV_FW/$FW.framework"
-          [ -d "$FW_DIR" ] || { sudo mkdir -p "$FW_DIR"; python3 -c "import os;f='$FW_DIR/$FW.tbd';fh=open(f,'w');fh.write('--- !tapi-tbd\n');fh.write('tbd-version: 4\n');fh.write('targets: [ arm64, arm64e ]\n');fh.write('uuids:\n  - target: arm64\n    value: 00000000-0000-0000-0000-000000000000\n  - target: arm64e\n    value: 00000000-0000-0000-0000-000000000000\n');fh.write('flags: [ flat_namespace, not_app_extension_safe ]\n');fh.write('install-name: /System/Library/PrivateFrameworks/$FW.framework/$FW\n');fh.write('current-version: 1\n');fh.write('compatibility-version: 1\n');fh.write('exports:\n  - archs: [ arm64, arm64e ]\n    symbols: [ _fake_symbol_for_linking ]\n');fh.close()"; sudo touch "$FW_DIR/$FW"; }
+          [ -d "$FW_DIR" ] || { sudo mkdir -p "$FW_DIR"; sudo python3 -c "import os;f='$FW_DIR/$FW.tbd';fh=open(f,'w');fh.write('--- !tapi-tbd\n');fh.write('tbd-version: 4\n');fh.write('targets: [ arm64, arm64e ]\n');fh.write('uuids:\n  - target: arm64\n    value: 00000000-0000-0000-0000-000000000000\n  - target: arm64e\n    value: 00000000-0000-0000-0000-000000000000\n');fh.write('flags: [ flat_namespace, not_app_extension_safe ]\n');fh.write('install-name: /System/Library/PrivateFrameworks/$FW.framework/$FW\n');fh.write('current-version: 1\n');fh.write('compatibility-version: 1\n');fh.write('exports:\n  - archs: [ arm64, arm64e ]\n    symbols: [ _fake_symbol_for_linking ]\n');fh.close()"; sudo touch "$FW_DIR/$FW"; }
         done
     - name: Show Mods
       run: |

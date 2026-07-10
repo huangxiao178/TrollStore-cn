@@ -17,6 +17,7 @@ jobs:
         export THEOS=/opt/theos
         sudo mkdir -p $THEOS
        sudo  git clone --depth 1 https://github.com/theos/theos.git $THEOS 2>/dev/null || (cd $THEOS && git pull)
+
                sudo chown -R $(whoami):staff $(dirname $THEOS)
 
         SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)

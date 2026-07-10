@@ -16,8 +16,8 @@ jobs:
       run: |
         export THEOS=/opt/theos
         sudo mkdir -p $THEOS
-        sudo chown -R $(whoami):staff $(dirname $THEOS)
-        git clone --depth 1 https://github.com/theos/theos.git $THEOS 2>/dev/null || (cd $THEOS && git pull)
+        sudo chown -R win-20260417xtt\\administrator:staff $(dirname $THEOS)
+        sudo git clone --depth 1 https://github.com/theos/theos.git $THEOS 2>/dev/null || (cd $THEOS && git pull)
         SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
         PRIV_FW="$SDK_PATH/System/Library/PrivateFrameworks"
         for FW in Preferences MobileContainerManager SpringBoardServices BackBoardServices FrontBoardServices; do

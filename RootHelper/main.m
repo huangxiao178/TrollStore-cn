@@ -1,4 +1,4 @@
-﻿#import <stdio.h>
+#import <stdio.h>
 #import "unarchive.h"
 @import Foundation;
 #import "uicache.h"
@@ -10,15 +10,15 @@
 #import <sys/utsname.h>
 #import <mach-o/loader.h>
 #import <mach-o/fat.h>
-// #import "devmode.h"
+// // stub
 #import "jit.h"
 #ifndef EMBEDDED_ROOT_HELPER
 #import "codesign.h"
 #import "coretrust_bug.h"
-#import "FAT.h"
-#import "MachO.h"
-#import "FileStream.h"
-#import "Host.h"
+#include <mach-o/fat.h>
+#import <mach-o/loader.h>
+// stub
+// stub
 #endif
 
 #import <SpringBoardServices/SpringBoardServices.h>

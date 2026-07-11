@@ -1,4 +1,4 @@
-﻿name: TrollStore CN Build
+name: TrollStore CN Build
 on:
   workflow_dispatch:
   push:

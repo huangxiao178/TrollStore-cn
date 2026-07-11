@@ -1,4 +1,4 @@
-#import <stdio.h>
+﻿#import <stdio.h>
 #import "unarchive.h"
 @import Foundation;
 #import "uicache.h"
@@ -10,7 +10,7 @@
 #import <sys/utsname.h>
 #import <mach-o/loader.h>
 #import <mach-o/fat.h>
-#import "devmode.h"
+// #import "devmode.h"
 #import "jit.h"
 #ifndef EMBEDDED_ROOT_HELPER
 #import "codesign.h"

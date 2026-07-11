@@ -5,7 +5,7 @@ on:
     branches: [master]
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-12
     timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
@@ -20,11 +20,11 @@ jobs:
         SDK=$(xcrun --sdk iphoneos --show-sdk-version)
         grep -rl 'iphone:clang:16.5' . | xargs sed -i '' "s/iphone:clang:16.5:14.0/iphone:clang:$SDK:14.0/g"
     - name: Build RootHelper
-      run: make -C RootHelper DEBUG=0 ADDITIONAL_CFLAGS="-Wno-error=deprecated-declarations"
+      run: make -C RootHelper DEBUG=0
     - name: Build TrollHelper
-      run: make -C TrollHelper EMBEDDED_ROOT_HELPER=1 ADDITIONAL_CFLAGS="-Wno-error=deprecated-declarations"
+      run: make -C TrollHelper EMBEDDED_ROOT_HELPER=1
     - name: Build TrollStore
-      run: make -C TrollStore FINALPACKAGE=1 ADDITIONAL_CFLAGS="-Wno-error=deprecated-declarations"
+      run: make -C TrollStore FINALPACKAGE=1
     - name: Assemble
       run: |
         mkdir -p _build

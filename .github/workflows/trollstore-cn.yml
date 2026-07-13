@@ -14,6 +14,18 @@ jobs:
       with:
         submodules: 'recursive'
 
+    - name: Cache Theos
+      uses: actions/cache@v4
+      with:
+        path: ~/theos
+        key: theos-v3-${{ hashFiles('.github/workflows/trollstore-cn.yml') }}
+
+    - name: Cache fastPathSign
+      uses: actions/cache@v4
+      with:
+        path: ./Exploits/fastPathSign/fastPathSign
+        key: fps-v2-${{ hashFiles('Exploits/fastPathSign/Makefile', 'ChOma/Makefile') }}
+
     - name: Install dependencies
       run: |
         brew install openssl@3 libarchive pkg-config ldid || true
@@ -29,7 +41,6 @@ jobs:
         unzip -qo /tmp/sdks.zip -d /tmp
         cp -rn /tmp/sdks-master/*.sdk "$THEOS/sdks/" 2>/dev/null || true
         rm -rf /tmp/sdks-master /tmp/sdks.zip
-        # Ensure iPhoneOS16.5.sdk exists
         if [ ! -d "$THEOS/sdks/iPhoneOS16.5.sdk" ]; then
           XCODE_SDK=$(xcrun --sdk iphoneos --show-sdk-path 2>/dev/null)
           if [ -n "$XCODE_SDK" ] && [ -d "$XCODE_SDK" ]; then
@@ -42,8 +53,19 @@ jobs:
         echo "THEOS=$THEOS" >> $GITHUB_ENV
         echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
 
+    - name: Ensure ChOma submodule
+      run: |
+        if [ ! -f "ChOma/src/FAT.h" ]; then
+          echo "ChOma not initialized, cloning..."
+          git submodule update --init --recursive || git clone --depth 1 https://github.com/opa334/ChOma.git ChOma
+        fi
+        ls ChOma/src/*.h | head -10
+
     - name: Build fastPathSign
-      run: make -C Exploits/fastPathSign
+      run: |
+        if [ ! -f "./Exploits/fastPathSign/fastPathSign" ]; then
+          make -C Exploits/fastPathSign
+        fi
 
     - name: Build RootHelper
       run: make -C RootHelper DEBUG=0

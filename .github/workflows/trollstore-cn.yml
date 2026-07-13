@@ -14,13 +14,6 @@ jobs:
       with:
         repository: opa334/TrollStore
         submodules: 'recursive'
-        path: trollstore
-
-    - name: Checkout huangxiao178/TrollStore-cn
-      uses: actions/checkout@v4
-      with:
-        repository: huangxiao178/TrollStore-cn
-        path: trollstore-cn
 
     - name: Install deps + Setup Theos
       run: |
@@ -43,21 +36,20 @@ jobs:
 
     - name: Chinese Localization
       run: |
-        cd trollstore
-        curl -sL https://raw.githubusercontent.com/huangxiao178/TrollStore-cn/master/hanhua.py | python3
+        sed -i '' 's|https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar|https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar|g' Shared/TSListControllerShared.m
+        curl -sL https://raw.githubusercontent.com/huangxiao178/TrollStore-cn/master/hanhua_b64.txt | base64 -d | python3
 
     - name: Build fastPathSign
-      run: cd trollstore && make -C Exploits/fastPathSign
+      run: make -C Exploits/fastPathSign
 
     - name: Build RootHelper
-      run: cd trollstore && make -C RootHelper DEBUG=0
+      run: make -C RootHelper DEBUG=0
 
     - name: Build TrollStore.app
-      run: cd trollstore && make -C TrollStore FINALPACKAGE=1
+      run: make -C TrollStore FINALPACKAGE=1
 
     - name: Build PersistenceHelper
       run: |
-        cd trollstore
         mkdir -p _build
         make -C TrollHelper clean
         make -C TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1
@@ -68,7 +60,6 @@ jobs:
 
     - name: Assemble TrollStore.tar
       run: |
-        cd trollstore
         cp RootHelper/.theos/obj/trollstorehelper TrollStore/.theos/obj/TrollStore.app/trollstorehelper
         cp _build/PersistenceHelper_Embedded TrollStore/.theos/obj/TrollStore.app/PersistenceHelper
         export COPYFILE_DISABLE=1
@@ -78,12 +69,12 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: TrollStore.tar
-        path: trollstore/_build/TrollStore.tar
+        path: _build/TrollStore.tar
         retention-days: 90
 
     - name: Upload PersistenceHelper
       uses: actions/upload-artifact@v4
       with:
         name: PersistenceHelper_Embedded
-        path: trollstore/_build/PersistenceHelper_Embedded
+        path: _build/PersistenceHelper_Embedded
         retention-days: 90

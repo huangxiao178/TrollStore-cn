@@ -9,27 +9,15 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 25
     steps:
-    - name: Checkout opa334/TrollStore + submodules
+    - name: Checkout opa334/TrollStore
       uses: actions/checkout@v4
       with:
         repository: opa334/TrollStore
         submodules: 'recursive'
-        path: trollstore
 
-    - name: Checkout huangxiao178/TrollStore-cn (for scripts)
-      uses: actions/checkout@v4
-      with:
-        repository: huangxiao178/TrollStore-cn
-        path: trollstore-cn
-
-    - name: Chinese Localization
-      run: bash trollstore-cn/hanhua.sh
-
-    - name: Install dependencies
-      run: brew install openssl@3 libarchive pkg-config ldid || true
-
-    - name: Setup Theos + SDK
+    - name: Install deps + Setup Theos
       run: |
+        brew install openssl@3 libarchive pkg-config ldid || true
         export THEOS=~/theos
         if [ ! -d "$THEOS/bin" ]; then
           git clone --recursive https://github.com/theos/theos.git "$THEOS"
@@ -41,25 +29,79 @@ jobs:
         rm -rf /tmp/sdks-master /tmp/sdks.zip
         if [ ! -d "$THEOS/sdks/iPhoneOS16.5.sdk" ]; then
           XCODE_SDK=$(xcrun --sdk iphoneos --show-sdk-path 2>/dev/null)
-          if [ -n "$XCODE_SDK" ] && [ -d "$XCODE_SDK" ]; then
-            ln -sfn "$XCODE_SDK" "$THEOS/sdks/iPhoneOS16.5.sdk"
-          fi
+          [ -n "$XCODE_SDK" ] && [ -d "$XCODE_SDK" ] && ln -sfn "$XCODE_SDK" "$THEOS/sdks/iPhoneOS16.5.sdk"
         fi
         echo "THEOS=$THEOS" >> $GITHUB_ENV
         echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
 
+    - name: Download URL
+      run: sed -i '' 's|https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar|https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar|g' Shared/TSListControllerShared.m
+
     - name: Build fastPathSign
-      run: cd trollstore && make -C Exploits/fastPathSign
+      run: make -C Exploits/fastPathSign
 
     - name: Build RootHelper
-      run: cd trollstore && make -C RootHelper DEBUG=0
+      run: make -C RootHelper DEBUG=0
 
-    - name: Build TrollStore.app
-      run: cd trollstore && make -C TrollStore FINALPACKAGE=1
+    - name: Build TrollStore.app + HanHua
+      run: |
+        perl -i -CSDA -pe '
+        s/\@"Apps"/\@"应用"/g;
+        s/\@"Settings"/\@"设置"/g;
+        s/\@"Respring"/\@"注销桌面"/g;
+        s/\@"Cancel"/\@"取消"/g;
+        s/\@"Close"/\@"关闭"/g;
+        s/\@"Error"/\@"错误"/g;
+        s/\@"Reboot Now"/\@"立即重启"/g;
+        s/\@"Reboot Required"/\@"需要重启"/g;
+        s/\@"Security"/\@"安全"/g;
+        s/\@"Utilities"/\@"工具"/g;
+        s/\@"Persistence"/\@"持久化"/g;
+        s/\@"Signing"/\@"签名"/g;
+        s/\@"Advanced"/\@"高级"/g;
+        s/\@"Donate"/\@"捐赠"/g;
+        s/\@"Developer Mode"/\@"开发者模式"/g;
+        s/\@"Update Available"/\@"有更新可用"/g;
+        s/\@"Refresh App Registrations"/\@"刷新应用注册"/g;
+        s/\@"Rebuild Icon Cache"/\@"重建图标缓存"/g;
+        s/\@"Install Persistence Helper"/\@"安装持久化助手"/g;
+        s/\@"Uninstall Persistence Helper"/\@"卸载持久化助手"/g;
+        s/\@"Uninstall TrollStore"/\@"卸载巨魔商店"/g;
+        s/\@"Install"/\@"安装"/g;
+        s/\@"Open"/\@"打开"/g;
+        s/\@"Uninstall"/\@"卸载"/g;
+        s/\@"User"/\@"用户"/g;
+        s/\@"System"/\@"系统"/g;
+        s/\@"Install IPA File"/\@"安装IPA文件"/g;
+        s/\@"Install from URL"/\@"从URL安装"/g;
+        s/\@"Open with JIT"/\@"用JIT打开"/g;
+        s/\@"Show Details"/\@"显示详情"/g;
+        s/\@"Uninstall App"/\@"卸载应用"/g;
+        s/\@"Confirm Uninstallation"/\@"确认卸载"/g;
+        s/\@"Installing"/\@"正在安装"/g;
+        s/\@"Downloading"/\@"正在下载"/g;
+        s/\@"Warning"/\@"警告"/g;
+        s/\@"Force Installation"/\@"强制安装"/g;
+        s/\@"Installing ldid"/\@"正在安装ldid"/g;
+        s/\@"Install TrollStore"/\@"安装巨魔商店"/g;
+        s/\@"Not Installed"/\@"未安装"/g;
+        s/\@"TrollStore Helper"/\@"巨魔商店助手"/g;
+        s/\@"Register Persistence Helper"/\@"注册持久化助手"/g;
+        s/\@"Unregister Persistence Helper"/\@"取消注册持久化助手"/g;
+        s/\@"Installed, %@"/\@"已安装，%@"|g;
+        s/\@"Installing TrollStore"/\@"正在安装巨魔商店"/g;
+        s/\@"Updating TrollStore"/\@"正在更新巨魔商店"/g;
+        ' TrollStore/TSRootViewController.m \
+          TrollStore/TSSettingsListController.m \
+          TrollStore/TSAppTableViewController.m \
+          TrollStore/TSInstallationController.m \
+          TrollHelper/TSHRootViewController.m \
+          Shared/TSListControllerShared.m
+        echo "=== HanHua OK, building ==="
+        make -C TrollStore FINALPACKAGE=1
 
     - name: Build PersistenceHelper
       run: |
-        cd trollstore
         mkdir -p _build
         make -C TrollHelper clean
         make -C TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1
@@ -70,7 +112,6 @@ jobs:
 
     - name: Assemble TrollStore.tar
       run: |
-        cd trollstore
         cp RootHelper/.theos/obj/trollstorehelper TrollStore/.theos/obj/TrollStore.app/trollstorehelper
         cp _build/PersistenceHelper_Embedded TrollStore/.theos/obj/TrollStore.app/PersistenceHelper
         export COPYFILE_DISABLE=1
@@ -80,12 +121,12 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: TrollStore.tar
-        path: trollstore/_build/TrollStore.tar
+        path: _build/TrollStore.tar
         retention-days: 90
 
     - name: Upload PersistenceHelper
       uses: actions/upload-artifact@v4
       with:
         name: PersistenceHelper_Embedded
-        path: trollstore/_build/PersistenceHelper_Embedded
+        path: _build/PersistenceHelper_Embedded
         retention-days: 90

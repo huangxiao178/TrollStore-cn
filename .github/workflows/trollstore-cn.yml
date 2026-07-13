@@ -55,17 +55,13 @@ jobs:
 
     - name: Ensure ChOma submodule
       run: |
-        if [ ! -f "ChOma/src/FAT.h" ]; then
-          echo "ChOma not initialized, cloning..."
-          git submodule update --init --recursive || git clone --depth 1 https://github.com/opa334/ChOma.git ChOma
-        fi
-        ls ChOma/src/*.h | head -10
+        rm -rf ChOma
+        git clone --depth 1 https://github.com/opa334/ChOma.git ChOma
+        echo "ChOma cloned: $(ls ChOma/src/*.h | wc -l) headers"
 
     - name: Build fastPathSign
       run: |
-        if [ ! -f "./Exploits/fastPathSign/fastPathSign" ]; then
-          make -C Exploits/fastPathSign
-        fi
+        make -C Exploits/fastPathSign
 
     - name: Build RootHelper
       run: make -C RootHelper DEBUG=0

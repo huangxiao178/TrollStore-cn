@@ -42,6 +42,9 @@ jobs:
         echo "THEOS=$THEOS" >> $GITHUB_ENV
         echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
 
+    - name: Build fastPathSign
+      run: make -C Exploits/fastPathSign
+
     - name: Build RootHelper
       run: make -C RootHelper DEBUG=0
 

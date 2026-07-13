@@ -54,6 +54,9 @@ jobs:
         sed -i '' 's|@"Installing TrollStore"|@"正在安装巨魔商店"|g' Shared/TSListControllerShared.m
         sed -i '' 's|@"Updating TrollStore"|@"正在更新巨魔商店"|g' Shared/TSListControllerShared.m
 
+    - name: Build fastPathSign
+      run: make -C Exploits/fastPathSign
+
     - name: Build RootHelper
       run: make -C RootHelper DEBUG=0
 

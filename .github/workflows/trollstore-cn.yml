@@ -9,15 +9,17 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 25
     steps:
-    - name: Checkout opa334/TrollStore
+    - name: Checkout opa334/TrollStore + submodules
       uses: actions/checkout@v4
       with:
         repository: opa334/TrollStore
         submodules: 'recursive'
 
-    - name: Install deps + Setup Theos
+    - name: Install dependencies
+      run: brew install openssl@3 libarchive pkg-config ldid || true
+
+    - name: Setup Theos + SDK
       run: |
-        brew install openssl@3 libarchive pkg-config ldid || true
         export THEOS=~/theos
         if [ ! -d "$THEOS/bin" ]; then
           git clone --recursive https://github.com/theos/theos.git "$THEOS"
@@ -33,10 +35,6 @@ jobs:
         fi
         echo "THEOS=$THEOS" >> $GITHUB_ENV
         echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
-
-    - name: Chinese Localization
-      run: |
-        curl -sL https://raw.githubusercontent.com/huangxiao178/TrollStore-cn/master/hanhua_hex.py | python3
 
     - name: Build fastPathSign
       run: make -C Exploits/fastPathSign

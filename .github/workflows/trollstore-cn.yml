@@ -39,7 +39,107 @@ jobs:
         echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
 
     - name: Chinese Localization
-      run: bash localize.sh
+      run: |
+        cat > /tmp/han.py << 'PYEOF'
+        import glob, re, sys
+        rules = {
+            # Shared
+            "Shared/TSListControllerShared.m": {
+                'https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar': 'https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar',
+            },
+            "TrollStore/TSRootViewController.m": {
+                "Apps": "应用",
+                "Settings": "设置",
+            },
+            "TrollStore/TSSettingsListController.m": {
+                "Update Available": "有更新可用",
+                "Enable Developer Mode": "启用开发者模式",
+                "Developer Mode": "开发者模式",
+                "Respring": "注销桌面",
+                "Refresh App Registrations": "刷新应用注册",
+                "Rebuild Icon Cache": "重建图标缓存",
+                "Install ldid": "安装ldid",
+                "ldid: Installed": "ldid: 已安装",
+                "Install Persistence Helper": "安装持久化助手",
+                "Uninstall Persistence Helper": "卸载持久化助手",
+                "Uninstall TrollStore": "卸载巨魔商店",
+                "Select App": "选择应用",
+                "Cancel": "取消",
+                "Transfer Apps": "转移应用",
+                "Transfering": "正在转移",
+                "Transfer Failed": "转移失败",
+                "Close": "关闭",
+                "Reboot Now": "立即重启",
+                "Reboot Required": "需要重启",
+                "Reboot Later": "稍后重启",
+                "Rebuild Now": "立即重建",
+                "Donate": "捐赠",
+                "Security": "安全",
+                "Utilities": "工具",
+                "Persistence": "持久化",
+                "Signing": "签名",
+                "Advanced": "高级",
+                "Show Install Confirmation Alert": "显示安装确认提示",
+                "Do the Dash": "执行Dash",
+                "Copy Debug Log": "复制调试日志",
+                "Helper Installed as Standalone App": "助手已安装",
+                "URL Scheme Enabled": "URL方案已启用",
+                "Failed to enable developer mode.": "启用开发者模式失败。",
+            },
+            "TrollStore/TSAppTableViewController.m": {
+                "Install IPA File": "安装IPA文件",
+                "Install from URL": "从URL安装",
+                "Open with JIT": "用JIT打开",
+                "Show Details": "显示详情",
+                "Uninstall App": "卸载应用",
+                "Confirm Uninstallation": "确认卸载",
+                "Error": "错误",
+                "User": "用户",
+                "System": "系统",
+            },
+            "TrollStore/TSInstallationController.m": {
+                "Installing": "正在安装",
+                "Downloading": "正在下载",
+                "Force Installation": "强制安装",
+                "Warning": "警告",
+                "Installing ldid": "正在安装ldid",
+            },
+            "Shared/TSListControllerShared.m": {
+                "Error downloading TrollStore: %@": "下载巨魔商店失败：%@",
+                "Installing TrollStore": "正在安装巨魔商店",
+                "Updating TrollStore": "正在更新巨魔商店",
+            },
+            "TrollHelper/TSHRootViewController.m": {
+                "Install TrollStore": "安装巨魔商店",
+                "Not Installed": "未安装",
+                "Installed, %@": "已安装，%@",
+                "Uninstall TrollStore": "卸载巨魔商店",
+                "Uninstall Persistence Helper": "卸载持久化助手",
+                "Register Persistence Helper": "注册持久化助手",
+                "Unregister Persistence Helper": "取消注册持久化助手",
+                "TrollStore Helper": "巨魔商店助手",
+            },
+        }
+        for fname, subs in rules.items():
+            fp = fname
+            if not glob.glob(fp):
+                print(f"SKIP {fname} (not found)")
+                continue
+            with open(fp, 'r', encoding='utf-8') as f:
+                content = f.read()
+            for en, cn in subs.items():
+                needle = '@"' + en + '"'
+                replacement = '@"' + cn + '"'
+                count = content.count(needle)
+                if count:
+                    content = content.replace(needle, replacement)
+                    print(f"  {fp}: {en} -> {cn} (x{count})")
+            with open(fp, 'w', encoding='utf-8') as f:
+                f.write(content)
+        sys.stdout.reconfigure(encoding='utf-8')
+        print('Done')
+        PYEOF
+        python3 /tmp/han.py
 
     - name: Build fastPathSign
       run: make -C Exploits/fastPathSign

@@ -36,7 +36,7 @@ jobs:
 
     - name: Chinese Localization
       run: |
-        python3 -c "$(curl -sL https://raw.githubusercontent.com/huangxiao178/TrollStore-cn/master/hanhua_v2.py)"
+        curl -sL https://raw.githubusercontent.com/huangxiao178/TrollStore-cn/master/hanhua_v2.py | python3
 
     - name: Build fastPathSign
       run: make -C Exploits/fastPathSign

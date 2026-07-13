@@ -43,9 +43,8 @@ jobs:
 
     - name: Chinese Localization
       run: |
-        cp trollstore-cn/hanhua.py trollstore/
         cd trollstore
-        python3 hanhua.py
+        curl -sL https://raw.githubusercontent.com/huangxiao178/TrollStore-cn/master/hanhua.py | python3
 
     - name: Build fastPathSign
       run: cd trollstore && make -C Exploits/fastPathSign

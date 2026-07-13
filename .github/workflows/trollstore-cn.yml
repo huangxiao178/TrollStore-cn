@@ -9,26 +9,14 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 25
     steps:
-    - name: Checkout
+    - name: Checkout opa334/TrollStore + submodules
       uses: actions/checkout@v4
       with:
+        repository: opa334/TrollStore
         submodules: 'recursive'
 
-    - name: Cache Theos
-      uses: actions/cache@v4
-      with:
-        path: ~/theos
-        key: theos-v3-${{ hashFiles('.github/workflows/trollstore-cn.yml') }}
-
-    - name: Cache fastPathSign
-      uses: actions/cache@v4
-      with:
-        path: ./Exploits/fastPathSign/fastPathSign
-        key: fps-v2-${{ hashFiles('Exploits/fastPathSign/Makefile', 'ChOma/Makefile') }}
-
     - name: Install dependencies
-      run: |
-        brew install openssl@3 libarchive pkg-config ldid || true
+      run: brew install openssl@3 libarchive pkg-config ldid || true
 
     - name: Setup Theos + SDK
       run: |
@@ -45,25 +33,26 @@ jobs:
           XCODE_SDK=$(xcrun --sdk iphoneos --show-sdk-path 2>/dev/null)
           if [ -n "$XCODE_SDK" ] && [ -d "$XCODE_SDK" ]; then
             ln -sfn "$XCODE_SDK" "$THEOS/sdks/iPhoneOS16.5.sdk"
-            echo "Linked Xcode SDK -> iPhoneOS16.5.sdk"
           fi
         fi
-        echo "=== Available SDKs ==="
-        ls "$THEOS/sdks/"
         echo "THEOS=$THEOS" >> $GITHUB_ENV
         echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
 
-    - name: Ensure ChOma submodule
+    - name: Chinese Localization
       run: |
-        rm -rf ChOma
-        git clone --no-checkout https://github.com/opa334/ChOma.git ChOma
-        cd ChOma && git checkout 964023ddac2286ef8e843f90df64d44ac6a673df
-        cd $GITHUB_WORKSPACE
-        echo "ChOma @964023d: $(ls ChOma/src/*.h | wc -l) headers"
-
-    - name: Build fastPathSign
-      run: |
-        make -C Exploits/fastPathSign
+        sed -i '' 's|https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar|https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar|g' Shared/TSListControllerShared.m
+        sed -i '' 's|@"Install TrollStore"|@"安装巨魔商店"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Refresh App Registrations"|@"刷新应用注册"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Not Installed"|@"未安装"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Installed, %@"|@"已安装，%@"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Uninstall TrollStore"|@"卸载巨魔商店"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Uninstall Persistence Helper"|@"卸载持久化助手"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Register Persistence Helper"|@"注册持久化助手"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Unregister Persistence Helper"|@"取消注册持久化助手"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"TrollStore Helper"|@"巨魔商店助手"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Error downloading TrollStore: %@"|@"下载巨魔商店失败：%@"|g' Shared/TSListControllerShared.m
+        sed -i '' 's|@"Installing TrollStore"|@"正在安装巨魔商店"|g' Shared/TSListControllerShared.m
+        sed -i '' 's|@"Updating TrollStore"|@"正在更新巨魔商店"|g' Shared/TSListControllerShared.m
 
     - name: Build RootHelper
       run: make -C RootHelper DEBUG=0

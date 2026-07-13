@@ -1,4 +1,5 @@
 name: TrollStore CN Build
+
 on:
   workflow_dispatch:
   push:
@@ -6,8 +7,7 @@ on:
     paths-ignore:
       - 'build/**'
       - 'dist/**'
-      - '*.spec'
-      - '*.exe'
+
 jobs:
   build:
     runs-on: macos-13
@@ -16,36 +16,38 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+
     - name: Setup Theos
       run: |
         export THEOS=/opt/theos
         sudo mkdir -p $THEOS
         sudo chown -R $(whoami):staff $THEOS 2>/dev/null || true
-        if [ ! -d "$THEOS/.git" ]; then sudo git clone --depth 1 https://github.com/theos/theos.git $THEOS; fi
+        if [ ! -d "$THEOS/.git" ]; then
+          sudo git clone --depth 1 https://github.com/theos/theos.git $THEOS
+        fi
         echo "THEOS=$THEOS" >> $GITHUB_ENV
-        SDK=$(xcrun --sdk iphoneos --show-sdk-path)
-        PRIV_FW="$SDK/System/Library/PrivateFrameworks"
-        for FW in Preferences MobileContainerManager SpringBoardServices BackBoardServices FrontBoardServices; do
-          FW_DIR="$PRIV_FW/$FW.framework"
-          if [ ! -d "$FW_DIR" ]; then
-            sudo mkdir -p "$FW_DIR"
-            sudo python3 -c "fw_name='$FW'; fw_dir='$FW_DIR'; import os; tbd=f'''--- !tapi-tbd\ntbd-version: 4\ntargets: [ arm64, arm64e ]\nuuids:\n  - target: arm64\n    value: 00000000-0000-0000-0000-000000000000\n  - target: arm64e\n    value: 00000000-0000-0000-0000-000000000000\nflags: [ flat_namespace, not_app_extension_safe ]\ninstall-name: /System/Library/PrivateFrameworks/{fw_name}.framework/{fw_name}\ncurrent-version: 1\ncompatibility-version: 1\nexports:\n  - archs: [ arm64, arm64e ]\n    symbols: [ _fake_symbol_for_linking ]\n'''; open(os.path.join(fw_dir, fw_name + '.tbd'),'w').write(tbd)"
-            sudo touch "$FW_DIR/$FW"
-          fi
-        done
+
+    - name: Generate TBD stubs
+      run: |
+        sudo python3 scripts/gen_tbd_stubs.py
+
     - name: Build RootHelper
       run: make -C RootHelper DEBUG=0
+
     - name: Build TrollHelper
       run: make -C TrollHelper EMBEDDED_ROOT_HELPER=1
+
     - name: Build TrollStore
       run: make -C TrollStore FINALPACKAGE=1
+
     - name: Assemble
       run: |
         mkdir -p _build
         cp RootHelper/.theos/obj/trollstorehelper TrollStore/.theos/obj/TrollStore.app/ 2>/dev/null || true
         cp TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper TrollStore/.theos/obj/TrollStore.app/PersistenceHelper 2>/dev/null || true
-        COPYFILE_DISABLE=1 tar -czf _build/TrollStore.tar -C TrollStore/.theos/obj TrollStore.app 2>/dev/null || true
+        COPYFILE_DISABLE=1 tar -czf _build/TrollStore.tar -C TrollStore/.theos/obj TrollStore.app
         ls -lh _build/
+
     - uses: actions/upload-artifact@v4
       with:
         name: TrollStore.tar

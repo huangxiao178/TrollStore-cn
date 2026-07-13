@@ -43,9 +43,9 @@ jobs:
 
     - name: Chinese Localization
       run: |
-        cp trollstore-cn/hanhua.sh trollstore/
+        cp trollstore-cn/hanhua.py trollstore/
         cd trollstore
-        bash hanhua.sh
+        python3 hanhua.py
 
     - name: Build fastPathSign
       run: cd trollstore && make -C Exploits/fastPathSign

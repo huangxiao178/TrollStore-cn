@@ -23,33 +23,13 @@ jobs:
         sudo chown -R $(whoami):staff $THEOS 2>/dev/null || true
         if [ ! -d "$THEOS/.git" ]; then sudo git clone --depth 1 https://github.com/theos/theos.git $THEOS; fi
         echo "THEOS=$THEOS" >> $GITHUB_ENV
-        # Create stub private framework headers for missing frameworks
         SDK=$(xcrun --sdk iphoneos --show-sdk-path)
         PRIV_FW="$SDK/System/Library/PrivateFrameworks"
         for FW in Preferences MobileContainerManager SpringBoardServices BackBoardServices FrontBoardServices; do
           FW_DIR="$PRIV_FW/$FW.framework"
           if [ ! -d "$FW_DIR" ]; then
             sudo mkdir -p "$FW_DIR"
-            sudo python3 -c "
-import os
-tbd='''--- !tapi-tbd
-tbd-version: 4
-targets: [ arm64, arm64e ]
-uuids:
-  - target: arm64
-    value: 00000000-0000-0000-0000-000000000000
-  - target: arm64e
-    value: 00000000-0000-0000-0000-000000000000
-flags: [ flat_namespace, not_app_extension_safe ]
-install-name: /System/Library/PrivateFrameworks/$FW.framework/$FW
-current-version: 1
-compatibility-version: 1
-exports:
-  - archs: [ arm64, arm64e ]
-    symbols: [ _fake_symbol_for_linking ]
-'''
-with open('$FW_DIR/$FW.tbd','w') as f: f.write(tbd)
-"
+            sudo python3 -c "fw_name='$FW'; fw_dir='$FW_DIR'; import os; tbd=f'''--- !tapi-tbd\ntbd-version: 4\ntargets: [ arm64, arm64e ]\nuuids:\n  - target: arm64\n    value: 00000000-0000-0000-0000-000000000000\n  - target: arm64e\n    value: 00000000-0000-0000-0000-000000000000\nflags: [ flat_namespace, not_app_extension_safe ]\ninstall-name: /System/Library/PrivateFrameworks/{fw_name}.framework/{fw_name}\ncurrent-version: 1\ncompatibility-version: 1\nexports:\n  - archs: [ arm64, arm64e ]\n    symbols: [ _fake_symbol_for_linking ]\n'''; open(os.path.join(fw_dir, fw_name + '.tbd'),'w').write(tbd)"
             sudo touch "$FW_DIR/$FW"
           fi
         done

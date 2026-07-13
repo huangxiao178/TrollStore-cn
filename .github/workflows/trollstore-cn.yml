@@ -56,10 +56,10 @@ jobs:
     - name: Ensure ChOma submodule
       run: |
         rm -rf ChOma
-        git clone --depth 1 https://github.com/opa334/ChOma.git ChOma
-        cd ChOma && git fetch --depth 1 origin 964023ddac2286ef8e843f90df64d44ac6a673df && git checkout FETCH_HEAD
+        git clone --no-checkout https://github.com/opa334/ChOma.git ChOma
+        cd ChOma && git checkout 964023ddac2286ef8e843f90df64d44ac6a673df
         cd $GITHUB_WORKSPACE
-        echo "ChOma cloned: $(ls ChOma/src/*.h | wc -l) headers"
+        echo "ChOma @964023d: $(ls ChOma/src/*.h | wc -l) headers"
 
     - name: Build fastPathSign
       run: |

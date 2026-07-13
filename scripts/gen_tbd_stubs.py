@@ -5,7 +5,7 @@ import os, sys
 sdk_path = sys.argv[1] if len(sys.argv) > 1 else os.popen('xcrun --sdk iphoneos --show-sdk-path').read().strip()
 priv_fw = os.path.join(sdk_path, 'System/Library/PrivateFrameworks')
 
-frameworks = ['Preferences','MobileContainerManager','SpringBoardServices','BackBoardServices','FrontBoardServices']
+frameworks = ['Preferences','MobileContainerManager','SpringBoardServices','BackBoardServices','FrontBoardServices','RunningBoardServices']
 
 for fw in frameworks:
     fw_dir = os.path.join(priv_fw, fw + '.framework')

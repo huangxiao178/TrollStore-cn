@@ -3,22 +3,56 @@ on:
   workflow_dispatch:
   push:
     branches: [master]
+    paths-ignore:
+      - 'build/**'
+      - 'dist/**'
+      - '*.spec'
+      - '*.exe'
 jobs:
   build:
     runs-on: macos-13
     timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
     - name: Setup Theos
       run: |
-        export THEOS=$GITHUB_WORKSPACE/theos
-        git clone --depth 1 https://github.com/theos/theos.git $THEOS 2>/dev/null || true
-        cd $THEOS && git submodule update --init --recursive 2>/dev/null || true
+        export THEOS=/opt/theos
+        sudo mkdir -p $THEOS
+        sudo chown -R $(whoami):staff $THEOS 2>/dev/null || true
+        if [ ! -d "$THEOS/.git" ]; then sudo git clone --depth 1 https://github.com/theos/theos.git $THEOS; fi
         echo "THEOS=$THEOS" >> $GITHUB_ENV
-    - name: Fix SDK version
-      run: |
-        SDK=$(xcrun --sdk iphoneos --show-sdk-version)
-        grep -rl 'iphone:clang:16.5' . | xargs sed -i '' "s/iphone:clang:16.5:14.0/iphone:clang:$SDK:14.0/g"
+        # Create stub private framework headers for missing frameworks
+        SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+        PRIV_FW="$SDK/System/Library/PrivateFrameworks"
+        for FW in Preferences MobileContainerManager SpringBoardServices BackBoardServices FrontBoardServices; do
+          FW_DIR="$PRIV_FW/$FW.framework"
+          if [ ! -d "$FW_DIR" ]; then
+            sudo mkdir -p "$FW_DIR"
+            sudo python3 -c "
+import os
+tbd='''--- !tapi-tbd
+tbd-version: 4
+targets: [ arm64, arm64e ]
+uuids:
+  - target: arm64
+    value: 00000000-0000-0000-0000-000000000000
+  - target: arm64e
+    value: 00000000-0000-0000-0000-000000000000
+flags: [ flat_namespace, not_app_extension_safe ]
+install-name: /System/Library/PrivateFrameworks/$FW.framework/$FW
+current-version: 1
+compatibility-version: 1
+exports:
+  - archs: [ arm64, arm64e ]
+    symbols: [ _fake_symbol_for_linking ]
+'''
+with open('$FW_DIR/$FW.tbd','w') as f: f.write(tbd)
+"
+            sudo touch "$FW_DIR/$FW"
+          fi
+        done
     - name: Build RootHelper
       run: make -C RootHelper DEBUG=0
     - name: Build TrollHelper

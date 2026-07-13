@@ -39,7 +39,9 @@ jobs:
         echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
 
     - name: Chinese Localization
-      run: python3 hanhua.py
+      run: |
+        curl -sLo hanhua.py https://raw.githubusercontent.com/huangxiao178/TrollStore-cn/master/hanhua.py
+        python3 hanhua.py
 
     - name: Build fastPathSign
       run: make -C Exploits/fastPathSign

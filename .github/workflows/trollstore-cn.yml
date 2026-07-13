@@ -1,54 +1,66 @@
 name: TrollStore CN Build
 
 on:
-  workflow_dispatch:
   push:
-    branches: [master]
-    paths-ignore:
-      - 'build/**'
-      - 'dist/**'
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-13
-    timeout-minutes: 30
+    runs-on: macos-15
+    timeout-minutes: 25
     steps:
     - uses: actions/checkout@v4
-      with:
-        submodules: recursive
 
     - name: Setup Theos
       run: |
         export THEOS=/opt/theos
         sudo mkdir -p $THEOS
-        sudo chown -R $(whoami):staff $THEOS 2>/dev/null || true
-        if [ ! -d "$THEOS/.git" ]; then
-          sudo git clone --depth 1 https://github.com/theos/theos.git $THEOS
-        fi
-        echo "THEOS=$THEOS" >> $GITHUB_ENV
+        sudo chown -R $(whoami):staff $(dirname $THEOS)
+        git clone --depth 1 https://github.com/theos/theos.git $THEOS --recursive 2>/dev/null || true
+        echo "=== SDK info ==="
+        xcrun --sdk iphoneos --show-sdk-version
+        xcrun --sdk iphoneos --show-sdk-path
 
-    - name: Generate TBD stubs
+    - name: Create SDK Stubs
       run: |
-        sudo python3 scripts/gen_tbd_stubs.py
+        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+        FW_DIR="$SDK_PATH/System/Library/PrivateFrameworks"
+        for FW in Preferences MobileContainerManager SpringBoardServices BackBoardServices FrontBoardServices RunningBoardServices; do
+          FW_PATH="$FW_DIR/$FW.framework"
+          if [ -d "$FW_PATH" ]; then echo "OK $FW"; continue; fi
+          echo "Creating stub $FW..."
+          sudo mkdir -p "$FW_PATH"
+          sudo touch "$FW_PATH/$FW"
+        done
 
-    - name: Build RootHelper
-      run: make -C RootHelper DEBUG=0
-
-    - name: Build TrollHelper
-      run: make -C TrollHelper EMBEDDED_ROOT_HELPER=1
-
-    - name: Build TrollStore
-      run: make -C TrollStore FINALPACKAGE=1
-
-    - name: Assemble
+    - name: Check Source Mods
       run: |
-        mkdir -p _build
-        cp RootHelper/.theos/obj/trollstorehelper TrollStore/.theos/obj/TrollStore.app/ 2>/dev/null || true
-        cp TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper TrollStore/.theos/obj/TrollStore.app/PersistenceHelper 2>/dev/null || true
-        COPYFILE_DISABLE=1 tar -czf _build/TrollStore.tar -C TrollStore/.theos/obj TrollStore.app
-        ls -lh _build/
+        grep -n "modelscope" Shared/TSListControllerShared.m || echo "No modelscope ref"
+        grep -n "github_fetchLatestVersion" Shared/TSUtil.m || echo "Version fetch check"
 
-    - uses: actions/upload-artifact@v4
+    - name: Configure SDK Target
+      run: |
+        SDK_VER=$(xcrun --sdk iphoneos --show-sdk-version)
+        sed -i '' "s/TARGET := iphone:clang:.*/TARGET := iphone:clang:16.5:$SDK_VER/" Makefile
+        head -3 Makefile
+
+    - name: Build
+      run: |
+        export THEOS=/opt/theos
+        export FINALPACKAGE=1
+        make make_trollhelper_embedded EMBEDDED_ROOT_HELPER=1 2>&1 | tail -20
+        make make_trollstore FINALPACKAGE=1 2>&1 | tail -20
+        make assemble_trollstore 2>&1 | tail -10
+        ls -la _build/
+
+    - name: Upload PersistenceHelper
+      uses: actions/upload-artifact@v4
+      with:
+        name: PersistenceHelper_Embedded
+        path: _build/PersistenceHelper_Embedded
+
+    - name: Upload TrollStore.tar
+      uses: actions/upload-artifact@v4
       with:
         name: TrollStore.tar
         path: _build/TrollStore.tar

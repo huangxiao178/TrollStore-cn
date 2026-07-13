@@ -36,7 +36,6 @@ jobs:
 
     - name: Chinese Localization
       run: |
-        sed -i '' 's|https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar|https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar|g' Shared/TSListControllerShared.m
         python3 -c "$(curl -sL https://raw.githubusercontent.com/huangxiao178/TrollStore-cn/master/hanhua_v2.py)"
 
     - name: Build fastPathSign

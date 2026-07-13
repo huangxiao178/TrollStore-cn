@@ -6,61 +6,75 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-14
     timeout-minutes: 25
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup Theos
-      run: |
-        export THEOS=/opt/theos
-        sudo mkdir -p $THEOS
-        sudo chown -R $(whoami):staff $(dirname $THEOS)
-        git clone --depth 1 https://github.com/theos/theos.git $THEOS --recursive 2>/dev/null || true
-        echo "=== SDK info ==="
-        xcrun --sdk iphoneos --show-sdk-version
-        xcrun --sdk iphoneos --show-sdk-path
-
-    - name: Create SDK Stubs
-      run: |
-        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
-        FW_DIR="$SDK_PATH/System/Library/PrivateFrameworks"
-        for FW in Preferences MobileContainerManager SpringBoardServices BackBoardServices FrontBoardServices RunningBoardServices; do
-          FW_PATH="$FW_DIR/$FW.framework"
-          if [ -d "$FW_PATH" ]; then echo "OK $FW"; continue; fi
-          echo "Creating stub $FW..."
-          sudo mkdir -p "$FW_PATH"
-          sudo touch "$FW_PATH/$FW"
-        done
-
-    - name: Check Source Mods
-      run: |
-        grep -n "modelscope" Shared/TSListControllerShared.m || echo "No modelscope ref"
-        grep -n "github_fetchLatestVersion" Shared/TSUtil.m || echo "Version fetch check"
-
-    - name: Configure SDK Target
-      run: |
-        SDK_VER=$(xcrun --sdk iphoneos --show-sdk-version)
-        sed -i '' "s/TARGET := iphone:clang:.*/TARGET := iphone:clang:16.5:$SDK_VER/" Makefile
-        head -3 Makefile
-
-    - name: Build
-      run: |
-        export THEOS=/opt/theos
-        export FINALPACKAGE=1
-        make make_trollhelper_embedded EMBEDDED_ROOT_HELPER=1 2>&1 | tail -20
-        make make_trollstore FINALPACKAGE=1 2>&1 | tail -20
-        make assemble_trollstore 2>&1 | tail -10
-        ls -la _build/
-
-    - name: Upload PersistenceHelper
-      uses: actions/upload-artifact@v4
+    - name: Checkout
+      uses: actions/checkout@v4
       with:
-        name: PersistenceHelper_Embedded
-        path: _build/PersistenceHelper_Embedded
+        submodules: 'recursive'
+
+    - name: Install dependencies
+      run: |
+        brew install openssl@3 libarchive pkg-config ldid || true
+
+    - name: Setup Theos + SDK
+      run: |
+        export THEOS=~/theos
+        if [ ! -d "$THEOS/bin" ]; then
+          git clone --recursive https://github.com/theos/theos.git "$THEOS"
+        fi
+        mkdir -p "$THEOS/sdks"
+        curl -sL "https://github.com/theos/sdks/archive/master.zip" -o /tmp/sdks.zip
+        unzip -qo /tmp/sdks.zip -d /tmp
+        cp -rn /tmp/sdks-master/*.sdk "$THEOS/sdks/" 2>/dev/null || true
+        rm -rf /tmp/sdks-master /tmp/sdks.zip
+        # Ensure iPhoneOS16.5.sdk exists
+        if [ ! -d "$THEOS/sdks/iPhoneOS16.5.sdk" ]; then
+          XCODE_SDK=$(xcrun --sdk iphoneos --show-sdk-path 2>/dev/null)
+          if [ -n "$XCODE_SDK" ] && [ -d "$XCODE_SDK" ]; then
+            ln -sfn "$XCODE_SDK" "$THEOS/sdks/iPhoneOS16.5.sdk"
+            echo "Linked Xcode SDK -> iPhoneOS16.5.sdk"
+          fi
+        fi
+        echo "=== Available SDKs ==="
+        ls "$THEOS/sdks/"
+        echo "THEOS=$THEOS" >> $GITHUB_ENV
+        echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
+
+    - name: Build RootHelper
+      run: make -C RootHelper DEBUG=0
+
+    - name: Build TrollStore.app
+      run: make -C TrollStore FINALPACKAGE=1
+
+    - name: Build PersistenceHelper
+      run: |
+        mkdir -p _build
+        make -C TrollHelper clean
+        make -C TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1
+        cp TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper _build/PersistenceHelper_Embedded
+        make -C TrollHelper clean
+        make -C TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1 LEGACY_CT_BUG=1
+        cp TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper _build/PersistenceHelper_Embedded_Legacy_arm64
+
+    - name: Assemble TrollStore.tar
+      run: |
+        cp RootHelper/.theos/obj/trollstorehelper TrollStore/.theos/obj/TrollStore.app/trollstorehelper
+        cp _build/PersistenceHelper_Embedded TrollStore/.theos/obj/TrollStore.app/PersistenceHelper
+        export COPYFILE_DISABLE=1
+        tar -czvf _build/TrollStore.tar -C TrollStore/.theos/obj TrollStore.app
 
     - name: Upload TrollStore.tar
       uses: actions/upload-artifact@v4
       with:
         name: TrollStore.tar
         path: _build/TrollStore.tar
+        retention-days: 90
+
+    - name: Upload PersistenceHelper
+      uses: actions/upload-artifact@v4
+      with:
+        name: PersistenceHelper_Embedded
+        path: _build/PersistenceHelper_Embedded
+        retention-days: 90

@@ -14,6 +14,16 @@ jobs:
       with:
         repository: opa334/TrollStore
         submodules: 'recursive'
+        path: trollstore
+
+    - name: Checkout huangxiao178/TrollStore-cn (for scripts)
+      uses: actions/checkout@v4
+      with:
+        repository: huangxiao178/TrollStore-cn
+        path: trollstore-cn
+
+    - name: Chinese Localization
+      run: bash trollstore-cn/hanhua.sh
 
     - name: Install dependencies
       run: brew install openssl@3 libarchive pkg-config ldid || true
@@ -38,35 +48,18 @@ jobs:
         echo "THEOS=$THEOS" >> $GITHUB_ENV
         echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
 
-    - name: Chinese Localization
-      run: |
-        sed -i '' -e 's|@"Apps"|@"应用"|g' -e 's|@"Settings"|@"设置"|g' TrollStore/TSRootViewController.m
-        sed -i '' -e 's|@"Respring"|@"注销桌面"|g' -e 's|@"Cancel"|@"取消"|g' -e 's|@"Close"|@"关闭"|g' -e 's|@"Error"|@"错误"|g' TrollStore/TSSettingsListController.m TrollStore/TSAppTableViewController.m TrollStore/TSInstallationController.m
-        sed -i '' -e 's|@"Reboot Now"|@"立即重启"|g' -e 's|@"Reboot Required"|@"需要重启"|g' TrollStore/TSSettingsListController.m TrollStore/TSInstallationController.m
-        sed -i '' -e 's|@"Install"|@"安装"|g' -e 's|@"Open"|@"打开"|g' -e 's|@"Uninstall"|@"卸载"|g' -e 's|@"User"|@"用户"|g' -e 's|@"System"|@"系统"|g' TrollStore/TSAppTableViewController.m
-        sed -i '' -e 's|@"Installing"|@"正在安装"|g' -e 's|@"Downloading"|@"正在下载"|g' -e 's|@"Warning"|@"警告"|g' TrollStore/TSInstallationController.m
-        sed -i '' -e 's|@"Security"|@"安全"|g' -e 's|@"Utilities"|@"工具"|g' -e 's|@"Persistence"|@"持久化"|g' -e 's|@"Signing"|@"签名"|g' -e 's|@"Advanced"|@"高级"|g' -e 's|@"Donate"|@"捐赠"|g' TrollStore/TSSettingsListController.m
-        sed -i '' -e 's|@"Developer Mode"|@"开发者模式"|g' -e 's|@"Update Available"|@"有更新可用"|g' TrollStore/TSSettingsListController.m
-        sed -i '' -e 's|@"Refresh App Registrations"|@"刷新应用注册"|g' -e 's|@"Rebuild Icon Cache"|@"重建图标缓存"|g' TrollStore/TSSettingsListController.m
-        sed -i '' -e 's|@"Install Persistence Helper"|@"安装持久化助手"|g' -e 's|@"Uninstall Persistence Helper"|@"卸载持久化助手"|g' TrollStore/TSSettingsListController.m TrollHelper/TSHRootViewController.m
-        sed -i '' -e 's|@"Install TrollStore"|@"安装巨魔商店"|g' -e 's|@"Uninstall TrollStore"|@"卸载巨魔商店"|g' TrollHelper/TSHRootViewController.m TrollStore/TSSettingsListController.m
-        sed -i '' -e 's|@"Not Installed"|@"未安装"|g' -e 's|@"TrollStore Helper"|@"巨魔商店助手"|g' -e 's|@"Register Persistence Helper"|@"注册持久化助手"|g' -e 's|@"Unregister Persistence Helper"|@"取消注册持久化助手"|g' TrollHelper/TSHRootViewController.m
-        sed -i '' -e 's|@"Installing TrollStore"|@"正在安装巨魔商店"|g' -e 's|@"Updating TrollStore"|@"正在更新巨魔商店"|g' Shared/TSListControllerShared.m
-        sed -i '' -e 's|@"Install IPA File"|@"安装IPA文件"|g' -e 's|@"Install from URL"|@"从URL安装"|g' -e 's|@"Open with JIT"|@"用JIT打开"|g' -e 's|@"Show Details"|@"显示详情"|g' -e 's|@"Uninstall App"|@"卸载应用"|g' -e 's|@"Confirm Uninstallation"|@"确认卸载"|g' TrollStore/TSAppTableViewController.m
-        sed -i '' -e 's|@"Force Installation"|@"强制安装"|g' -e 's|@"Installing ldid"|@"正在安装ldid"|g' TrollStore/TSInstallationController.m
-        sed -i '' 's|https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar|https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar|g' Shared/TSListControllerShared.m
-
     - name: Build fastPathSign
-      run: make -C Exploits/fastPathSign
+      run: cd trollstore && make -C Exploits/fastPathSign
 
     - name: Build RootHelper
-      run: make -C RootHelper DEBUG=0
+      run: cd trollstore && make -C RootHelper DEBUG=0
 
     - name: Build TrollStore.app
-      run: make -C TrollStore FINALPACKAGE=1
+      run: cd trollstore && make -C TrollStore FINALPACKAGE=1
 
     - name: Build PersistenceHelper
       run: |
+        cd trollstore
         mkdir -p _build
         make -C TrollHelper clean
         make -C TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1
@@ -77,6 +70,7 @@ jobs:
 
     - name: Assemble TrollStore.tar
       run: |
+        cd trollstore
         cp RootHelper/.theos/obj/trollstorehelper TrollStore/.theos/obj/TrollStore.app/trollstorehelper
         cp _build/PersistenceHelper_Embedded TrollStore/.theos/obj/TrollStore.app/PersistenceHelper
         export COPYFILE_DISABLE=1
@@ -86,12 +80,12 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: TrollStore.tar
-        path: _build/TrollStore.tar
+        path: trollstore/_build/TrollStore.tar
         retention-days: 90
 
     - name: Upload PersistenceHelper
       uses: actions/upload-artifact@v4
       with:
         name: PersistenceHelper_Embedded
-        path: _build/PersistenceHelper_Embedded
+        path: trollstore/_build/PersistenceHelper_Embedded
         retention-days: 90

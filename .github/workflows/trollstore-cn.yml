@@ -36,6 +36,33 @@ jobs:
         echo "THEOS=$THEOS" >> $GITHUB_ENV
         echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
 
+    - name: Chinese Localization
+      run: |
+        # Construct Chinese strings via printf (pure ASCII, zero encoding risk)
+        APP=$(printf '\@"\345\272\224\347\224\250"')
+        SET=$(printf '\@"\350\256\276\347\275\256"')
+        INST=$(printf '\@"\345\256\211\350\243\205"')
+        UNINST=$(printf '\@"\345\215\270\350\275\275"')
+        USER=$(printf '\@"\347\224\250\346\210\267"')
+        SYS=$(printf '\@"\347\263\273\347\273\237"')
+        ERR=$(printf '\@"\351\224\231\350\257\257"')
+        WARN=$(printf '\@"\350\255\246\345\221\212"')
+        SEC=$(printf '\@"\345\256\211\345\205\250"')
+        ADV=$(printf '\@"\351\253\230\347\272\247"')
+        TROLL=$(printf '\@"\345\267\250\351\255\224\345\225\206\345\272\227"')
+        # Apply replacements
+        sed -i '' "s|@\"Apps\"|$APP|g" TrollStore/TSRootViewController.m
+        sed -i '' "s|@\"Settings\"|$SET|g" TrollStore/TSRootViewController.m
+        sed -i '' "s|@\"Install\"|$INST|g" TrollStore/TSAppTableViewController.m
+        sed -i '' "s|@\"Uninstall\"|$UNINST|g" TrollStore/TSAppTableViewController.m
+        sed -i '' "s|@\"User\"|$USER|g" TrollStore/TSAppTableViewController.m
+        sed -i '' "s|@\"System\"|$SYS|g" TrollStore/TSAppTableViewController.m
+        sed -i '' "s|@\"Error\"|$ERR|g" TrollStore/TSAppTableViewController.m
+        sed -i '' "s|@\"Warning\"|$WARN|g" TrollStore/TSInstallationController.m
+        sed -i '' "s|@\"Security\"|$SEC|g" TrollStore/TSSettingsListController.m
+        sed -i '' "s|@\"Advanced\"|$ADV|g" TrollStore/TSSettingsListController.m
+        sed -i '' "s|@\"Install TrollStore\"|$INST $TROLL|g" TrollHelper/TSHRootViewController.m
+        sed -i '' "s|@\"Uninstall TrollStore\"|$UNINST $TROLL|g" TrollHelper/TSHRootViewController.m
     - name: Build fastPathSign
       run: make -C Exploits/fastPathSign
 

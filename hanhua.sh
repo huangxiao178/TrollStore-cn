@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
-cd $GITHUB_WORKSPACE/trollstore
 echo "=== HanHua in $(pwd) ==="
-ls TrollStore/TSRootViewController.m && echo "source files exist"
 
 # TSRootViewController
 sed -i '' 's|@"Apps"|@"应用"|g' TrollStore/TSRootViewController.m

@@ -20,7 +20,7 @@ jobs:
 
     - name: Setup Theos + SDK
       run: |
-        export THEOS=~/theos
+        export THEOS=$HOME/theos
         if [ ! -d "$THEOS/bin" ]; then
           git clone --recursive https://github.com/theos/theos.git "$THEOS"
         fi
@@ -33,7 +33,11 @@ jobs:
           XCODE_SDK=$(xcrun --sdk iphoneos --show-sdk-path 2>/dev/null)
           [ -n "$XCODE_SDK" ] && [ -d "$XCODE_SDK" ] && ln -sfn "$XCODE_SDK" "$THEOS/sdks/iPhoneOS16.5.sdk"
         fi
-        sed -i '' 's|@Apps|@app_cn|g' TrollStore/TSRootViewController.m
+        echo "THEOS=$THEOS" >> $GITHUB_ENV
+        echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
+        echo "=== THEOS=$THEOS ==="
+        ls "$THEOS/makefiles/common.mk"
+
     - name: Build fastPathSign
       run: make -C Exploits/fastPathSign
 
@@ -73,4 +77,3 @@ jobs:
         name: PersistenceHelper_Embedded
         path: _build/PersistenceHelper_Embedded
         retention-days: 90
-  

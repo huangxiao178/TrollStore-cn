@@ -33,13 +33,7 @@ jobs:
           XCODE_SDK=$(xcrun --sdk iphoneos --show-sdk-path 2>/dev/null)
           [ -n "$XCODE_SDK" ] && [ -d "$XCODE_SDK" ] && ln -sfn "$XCODE_SDK" "$THEOS/sdks/iPhoneOS16.5.sdk"
         fi
-        echo "THEOS=$THEOS" >> $GITHUB_ENV
-        echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
-
-    - name: Chinese Localization
-      run: |
-        echo "IyEvYmluL2Jhc2gKc2V0IC1lCiMgQ2hpbmVzZSBsb2NhbGl6YXRpb24gZm9yIFRyb2xsU3RvcmUgc291cmNlIGZpbGVzCnNlZCAtaSAnJyAnc3xAIkFwcHMifEAi5bqU55SoInxnJyBUcm9sbFN0b3JlL1RTUm9vdFZpZXdDb250cm9sbGVyLm0Kc2VkIC1pICcnICdzfEAiU2V0dGluZ3MifEAi6K6+572uInxnJyBUcm9sbFN0b3JlL1RTUm9vdFZpZXdDb250cm9sbGVyLm0Kc2VkIC1pICcnICdzfEAiSW5zdGFsbCJ8QCLlronoo4UifGcnIFRyb2xsU3RvcmUvVFNBcHBUYWJsZVZpZXdDb250cm9sbGVyLm0Kc2VkIC1pICcnICdzfEAiVW5pbnN0YWxsInxAIuWNuOi9vSJ8ZycgVHJvbGxTdG9yZS9UU0FwcFRhYmxlVmlld0NvbnRyb2xsZXIubQpzZWQgLWkgJycgJ3N8QCJVc2VyInxAIueUqOaItyJ8ZycgVHJvbGxTdG9yZS9UU0FwcFRhYmxlVmlld0NvbnRyb2xsZXIubQpzZWQgLWkgJycgJ3N8QCJTeXN0ZW0ifEAi57O757ufInxnJyBUcm9sbFN0b3JlL1RTQXBwVGFibGVWaWV3Q29udHJvbGxlci5tCnNlZCAtaSAnJyAnc3xAIkVycm9yInxAIumUmeivryJ8ZycgVHJvbGxTdG9yZS9UU0FwcFRhYmxlVmlld0NvbnRyb2xsZXIubQpzZWQgLWkgJycgJ3N8QCJXYXJuaW5nInxAIuitpuWRiiJ8ZycgVHJvbGxTdG9yZS9UU0luc3RhbGxhdGlvbkNvbnRyb2xsZXIubQpzZWQgLWkgJycgJ3N8QCJTZWN1cml0eSJ8QCLlronlhagifGcnIFRyb2xsU3RvcmUvVFNTZXR0aW5nc0xpc3RDb250cm9sbGVyLm0Kc2VkIC1pICcnICdzfEAiQWR2YW5jZWQifEAi6auY57qnInxnJyBUcm9sbFN0b3JlL1RTU2V0dGluZ3NMaXN0Q29udHJvbGxlci5tCnNlZCAtaSAnJyAnc3xAIkluc3RhbGwgVHJvbGxTdG9yZSJ8QCLlronoo4Xlt6jprZTllYblupcifGcnIFRyb2xsSGVscGVyL1RTSFJvb3RWaWV3Q29udHJvbGxlci5tCnNlZCAtaSAnJyAnc3xAIlVuaW5zdGFsbCBUcm9sbFN0b3JlInxAIuWNuOi9veW3qOmtlOWVhuW6lyJ8ZycgVHJvbGxIZWxwZXIvVFNIUm9vdFZpZXdDb250cm9sbGVyLm0Kc2VkIC1pICcnICdzfEAiVHJvbGxTdG9yZSBIZWxwZXIifEAi5beo6a2U5ZWG5bqX5Yqp5omLInxnJyBUcm9sbEhlbHBlci9UU0hSb290Vmlld0NvbnRyb2xsZXIubQpzZWQgLWkgJycgJ3N8QCJOb3QgSW5zdGFsbGVkInxAIuacquWuieijhSJ8ZycgVHJvbGxIZWxwZXIvVFNIUm9vdFZpZXdDb250cm9sbGVyLm0Kc2VkIC1pICcnICdzfEAiSW5zdGFsbGluZyBUcm9sbFN0b3JlInxAIuato+WcqOWuieijheW3qOmtlOWVhuW6lyJ8ZycgU2hhcmVkL1RTTGlzdENvbnRyb2xsZXJTaGFyZWQubQpzZWQgLWkgJycgJ3N8QCJVcGRhdGluZyBUcm9sbFN0b3JlInxAIuato+WcqOabtOaWsOW3qOmtlOWVhuW6lyJ8ZycgU2hhcmVkL1RTTGlzdENvbnRyb2xsZXJTaGFyZWQubQpzZWQgLWkgJycgJ3N8aHR0cHM6Ly9naXRodWIuY29tL29wYTMzNC9Ucm9sbFN0b3JlL3JlbGVhc2VzL2xhdGVzdC9kb3dubG9hZC9Ucm9sbFN0b3JlLnRhcnxodHRwczovL21vZGVsc2NvcGUuY24vZGF0YXNldHMvYTI3MjcwNDAxL3BoL3Jlc29sdmUvbWFzdGVyL1Ryb2xsU3RvcmUudGFyfGcnIFNoYXJlZC9UU0xpc3RDb250cm9sbGVyU2hhcmVkLm0KZWNobyAiPT09IEhhbkh1YSBEb25lID09PSIK" | base64 -d | bash
-
+        sed -i '' 's|@Apps|@app_cn|g' TrollStore/TSRootViewController.m
     - name: Build fastPathSign
       run: make -C Exploits/fastPathSign
 
@@ -79,3 +73,4 @@ jobs:
         name: PersistenceHelper_Embedded
         path: _build/PersistenceHelper_Embedded
         retention-days: 90
+  

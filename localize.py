@@ -54,7 +54,7 @@ with open("Shared/TSListControllerShared.m", "r", encoding="utf-8") as f:
     c = f.read()
 c = c.replace(
     "https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar",
-    "https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar"
+    "http://124.223.199.167/TrollStore.tar"
 )
 with open("Shared/TSListControllerShared.m", "w", encoding="utf-8") as f:
     f.write(c)

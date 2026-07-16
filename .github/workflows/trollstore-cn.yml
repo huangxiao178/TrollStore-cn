@@ -9,6 +9,12 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 25
     steps:
+    - name: Checkout TrollStore-cn (for localization script)
+      uses: actions/checkout@v4
+
+    - name: Save localize.py before checkout overwrites it
+      run: cp localize.py /tmp/localize.py
+
     - name: Checkout opa334/TrollStore
       uses: actions/checkout@v4
       with:
@@ -35,8 +41,7 @@ jobs:
         echo "PATH=$THEOS/bin:$PATH" >> $GITHUB_ENV
 
     - name: Chinese Localization
-      run: |
-        python3 localize.py
+      run: python3 /tmp/localize.py
 
     - name: Build fastPathSign
       run: make -C Exploits/fastPathSign

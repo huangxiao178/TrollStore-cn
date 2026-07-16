@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Chinese localization for TrollStore sources"""
-import sys
 
 subs = [
     ("TrollStore/TSRootViewController.m", [
@@ -33,52 +32,29 @@ subs = [
     ]),
 ]
 
+import sys
 for fname, reps in subs:
-    try:
-        with open(fname, "r", encoding="utf-8") as f:
-            content = f.read()
-        for en, cn in reps:
-            old = '@"' + en + '"'
-            new = '@"' + cn + '"'
-            count = content.count(old)
-            content = content.replace(old, new)
-            if count:
-                print(f"  {fname}: '{en}' -> '{cn}' ({count} matches)")
-            else:
-                print(f"  {fname}: '{en}' -> '{cn}' (0 matches, SKIPPED)")
-        with open(fname, "w", encoding="utf-8") as f:
-            f.write(content)
-    except FileNotFoundError:
-        print(f"  {fname}: FILE NOT FOUND, trying checkout root...")
-        # Try different working directories
-        import os
-        for root in ['.', '/Users/runner/work/TrollStore-cn/TrollStore-cn']:
-            fpath = os.path.join(root, fname)
-            if os.path.exists(fpath):
-                print(f"  Found at {fpath}")
-                with open(fpath, "r", encoding="utf-8") as f:
-                    content = f.read()
-                for en, cn in reps:
-                    old = '@"' + en + '"'
-                    new = '@"' + cn + '"'
-                    content = content.replace(old, new)
-                with open(fpath, "w", encoding="utf-8") as f:
-                    f.write(content)
-                break
+    print(f"Processing {fname}...")
+    with open(fname, "r", encoding="utf-8") as f:
+        content = f.read()
+    for en, cn in reps:
+        old = '@"' + en + '"'
+        new = '@"' + cn + '"'
+        count = content.count(old)
+        content = content.replace(old, new)
+        print(f"  '{en}' -> '{cn}': {count} matches")
+    with open(fname, "w", encoding="utf-8") as f:
+        f.write(content)
 
 # Fix update URL
-try:
-    fname = "Shared/TSListControllerShared.m"
-    with open(fname, "r", encoding="utf-8") as f:
-        c = f.read()
-    c = c.replace(
-        "https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar",
-        "https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar"
-    )
-    with open(fname, "w", encoding="utf-8") as f:
-        f.write(c)
-    print("Updated download URL")
-except:
-    pass
-
+fname = "Shared/TSListControllerShared.m"
+with open(fname, "r", encoding="utf-8") as f:
+    c = f.read()
+old_url = "https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar"
+new_url = "https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar"
+count = c.count(old_url)
+c = c.replace(old_url, new_url)
+with open(fname, "w", encoding="utf-8") as f:
+    f.write(c)
+print(f"URL replace: {count} matches")
 print("Localization done!")

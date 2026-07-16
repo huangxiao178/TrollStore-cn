@@ -36,23 +36,39 @@ jobs:
 
     - name: Chinese Localization
       run: |
-        sed -i '' 's|@"Apps"|@"应用"|g' TrollStore/TSRootViewController.m
-        sed -i '' 's|@"Settings"|@"设置"|g' TrollStore/TSRootViewController.m
-        sed -i '' 's|@"Install"|@"安装"|g' TrollStore/TSAppTableViewController.m
-        sed -i '' 's|@"Uninstall"|@"卸载"|g' TrollStore/TSAppTableViewController.m
-        sed -i '' 's|@"User"|@"用户"|g' TrollStore/TSAppTableViewController.m
-        sed -i '' 's|@"System"|@"系统"|g' TrollStore/TSAppTableViewController.m
-        sed -i '' 's|@"Error"|@"错误"|g' TrollStore/TSAppTableViewController.m
-        sed -i '' 's|@"Warning"|@"警告"|g' TrollStore/TSInstallationController.m
-        sed -i '' 's|@"Security"|@"安全"|g' TrollStore/TSSettingsListController.m
-        sed -i '' 's|@"Advanced"|@"高级"|g' TrollStore/TSSettingsListController.m
-        sed -i '' 's|@"Install TrollStore"|@"安装巨魔商店"|g' TrollHelper/TSHRootViewController.m
-        sed -i '' 's|@"Uninstall TrollStore"|@"卸载巨魔商店"|g' TrollHelper/TSHRootViewController.m
-        sed -i '' 's|@"TrollStore Helper"|@"巨魔商店助手"|g' TrollHelper/TSHRootViewController.m
-        sed -i '' 's|@"Not Installed"|@"未安装"|g' TrollHelper/TSHRootViewController.m
-        sed -i '' 's|@"Installing TrollStore"|@"正在安装巨魔商店"|g' Shared/TSListControllerShared.m
-        sed -i '' 's|@"Updating TrollStore"|@"正在更新巨魔商店"|g' Shared/TSListControllerShared.m
-        sed -i '' 's|https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar|https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar|g' Shared/TSListControllerShared.m
+        APP=$(printf 'åºç¨')
+        SET=$(printf 'è®¾ç½®')
+        INST=$(printf 'å®è£')
+        UNINST=$(printf 'å¸è½½')
+        USER=$(printf 'ç¨æ·')
+        SYS=$(printf 'ç³»ç»')
+        ERR=$(printf 'éè¯¯')
+        WARN=$(printf 'è­¦å')
+        SEC=$(printf 'å®å¨')
+        ADV=$(printf 'é«çº§')
+        INST_TS=$(printf 'å®è£å·¨é­ååº')
+        UNINST_TS=$(printf 'å¸è½½å·¨é­ååº')
+        HELPER=$(printf 'å·¨é­ååºå©æ')
+        NOTINST=$(printf 'æªå®è£')
+        INSTING=$(printf 'æ­£å¨å®è£å·¨é­ååº')
+        UPDATING=$(printf 'æ­£å¨æ´æ°å·¨é­ååº')
+        sed -i '' "s|@\"Apps\"|@\"$APP\"|g" TrollStore/TSRootViewController.m
+        sed -i '' "s|@\"Settings\"|@\"$SET\"|g" TrollStore/TSRootViewController.m
+        sed -i '' "s|@\"Install\"|@\"$INST\"|g" TrollStore/TSAppTableViewController.m
+        sed -i '' "s|@\"Uninstall\"|@\"$UNINST\"|g" TrollStore/TSAppTableViewController.m
+        sed -i '' "s|@\"User\"|@\"$USER\"|g" TrollStore/TSAppTableViewController.m
+        sed -i '' "s|@\"System\"|@\"$SYS\"|g" TrollStore/TSAppTableViewController.m
+        sed -i '' "s|@\"Error\"|@\"$ERR\"|g" TrollStore/TSAppTableViewController.m
+        sed -i '' "s|@\"Warning\"|@\"$WARN\"|g" TrollStore/TSInstallationController.m
+        sed -i '' "s|@\"Security\"|@\"$SEC\"|g" TrollStore/TSSettingsListController.m
+        sed -i '' "s|@\"Advanced\"|@\"$ADV\"|g" TrollStore/TSSettingsListController.m
+        sed -i '' "s|@\"Install TrollStore\"|@\"$INST_TS\"|g" TrollHelper/TSHRootViewController.m
+        sed -i '' "s|@\"Uninstall TrollStore\"|@\"$UNINST_TS\"|g" TrollHelper/TSHRootViewController.m
+        sed -i '' "s|@\"TrollStore Helper\"|@\"$HELPER\"|g" TrollHelper/TSHRootViewController.m
+        sed -i '' "s|@\"Not Installed\"|@\"$NOTINST\"|g" TrollHelper/TSHRootViewController.m
+        sed -i '' "s|@\"Installing TrollStore\"|@\"$INSTING\"|g" Shared/TSListControllerShared.m
+        sed -i '' "s|@\"Updating TrollStore\"|@\"$UPDATING\"|g" Shared/TSListControllerShared.m
+        sed -i '' "s|https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar|https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar|g" Shared/TSListControllerShared.m
 
     - name: Build fastPathSign
       run: make -C Exploits/fastPathSign

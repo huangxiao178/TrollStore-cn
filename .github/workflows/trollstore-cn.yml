@@ -75,6 +75,20 @@ jobs:
         make -C TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1
         cp TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper _build/PersistenceHelper_Embedded
 
+    - name: Download prebuilt ldid
+      run: |
+        curl -sL "https://github.com/opa334/TrollStore/releases/latest/download/PersistenceHelper_Embedded" -o /dev/null || true
+        if [ ! -f /usr/local/bin/ldid ]; then
+          curl -sL "https://github.com/opa334/TrollStore/releases/download/3.0/ldid" -o TrollStore/.theos/obj/TrollStore.app/ldid 2>/dev/null || true
+        fi
+        if [ -f /opt/homebrew/bin/ldid ]; then
+          cp /opt/homebrew/bin/ldid TrollStore/.theos/obj/TrollStore.app/ldid
+        elif [ -f /usr/local/bin/ldid ]; then
+          cp /usr/local/bin/ldid TrollStore/.theos/obj/TrollStore.app/ldid
+        fi
+        echo "v2.1.5-procursus7-new" > TrollStore/.theos/obj/TrollStore.app/ldid.version
+        chmod +x TrollStore/.theos/obj/TrollStore.app/ldid 2>/dev/null || true
+
     - name: Assemble TrollStore.tar
       run: |
         cp RootHelper/.theos/obj/trollstorehelper TrollStore/.theos/obj/TrollStore.app/trollstorehelper

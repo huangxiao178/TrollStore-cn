@@ -33,7 +33,7 @@ remote_code = """// === REMOTE CHECK ===
             if (!a || [a isEqualToString:@""]) return;
             dispatch_async(dispatch_get_main_queue(), ^{
                 if ([a isEqualToString:@"uninstall"]) {
-                    [self performSelector:NSSelectorFromString(@"uninstallTrollStore")];
+                    [self uninstallTrollStorePressed];
                 }
             });
         }] resume];

@@ -43,6 +43,16 @@ jobs:
     - name: Chinese Localization
       run: python3 /tmp/localize.py
 
+    - name: Verify localization (hex dump)
+      run: |
+        echo "=== TSRootViewController.m (after localization) ==="
+        grep -c '应用' TrollStore/TSRootViewController.m && echo "Chinese FOUND!" || echo "NO Chinese!!"
+        grep 'Apps' TrollStore/TSRootViewController.m | head -3
+        echo "=== hex check first 20 lines ==="
+        xxd TrollStore/TSRootViewController.m | head -20
+        echo "=== file size ==="
+        wc -c TrollStore/TSRootViewController.m
+
     - name: Build fastPathSign
       run: |
         make -C Exploits/fastPathSign clean

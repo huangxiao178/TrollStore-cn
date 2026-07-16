@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Chinese localization for TrollStore sources"""
+import sys
 
 subs = [
     ("TrollStore/TSRootViewController.m", [
@@ -32,9 +33,9 @@ subs = [
     ]),
 ]
 
-import sys
+total_replaced = 0
 for fname, reps in subs:
-    print(f"Processing {fname}...")
+    print(f"[{fname}]", file=sys.stderr)
     with open(fname, "r", encoding="utf-8") as f:
         content = f.read()
     for en, cn in reps:
@@ -42,19 +43,28 @@ for fname, reps in subs:
         new = '@"' + cn + '"'
         count = content.count(old)
         content = content.replace(old, new)
-        print(f"  '{en}' -> '{cn}': {count} matches")
+        total_replaced += count
+        if count:
+            print(f"  {en} -> {cn} ({count})", file=sys.stderr)
     with open(fname, "w", encoding="utf-8") as f:
         f.write(content)
 
-# Fix update URL
-fname = "Shared/TSListControllerShared.m"
-with open(fname, "r", encoding="utf-8") as f:
+# Fix URL
+with open("Shared/TSListControllerShared.m", "r", encoding="utf-8") as f:
     c = f.read()
-old_url = "https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar"
-new_url = "https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar"
-count = c.count(old_url)
-c = c.replace(old_url, new_url)
-with open(fname, "w", encoding="utf-8") as f:
+c = c.replace(
+    "https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar",
+    "https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar"
+)
+with open("Shared/TSListControllerShared.m", "w", encoding="utf-8") as f:
     f.write(c)
-print(f"URL replace: {count} matches")
-print("Localization done!")
+
+print(f"Total replacements: {total_replaced}", file=sys.stderr)
+
+# Verify
+with open("TrollStore/TSRootViewController.m", "r", encoding="utf-8") as f:
+    test = f.read()
+if "应用" in test and "设置" in test:
+    print("VERIFY OK: Chinese chars present in file", file=sys.stderr)
+else:
+    print("VERIFY FAIL: Chinese chars NOT in file!", file=sys.stderr)

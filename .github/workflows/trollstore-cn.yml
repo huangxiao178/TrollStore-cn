@@ -44,13 +44,19 @@ jobs:
       run: python3 /tmp/localize.py
 
     - name: Build fastPathSign
-      run: make -C Exploits/fastPathSign
+      run: |
+        make -C Exploits/fastPathSign clean
+        make -C Exploits/fastPathSign
 
     - name: Build RootHelper
-      run: make -C RootHelper DEBUG=0
+      run: |
+        make -C RootHelper clean
+        make -C RootHelper DEBUG=0
 
     - name: Build TrollStore.app
-      run: make -C TrollStore FINALPACKAGE=1
+      run: |
+        make -C TrollStore clean
+        make -C TrollStore FINALPACKAGE=1
 
     - name: Build PersistenceHelper
       run: |

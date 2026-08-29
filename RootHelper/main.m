@@ -15,10 +15,10 @@
 #ifndef EMBEDDED_ROOT_HELPER
 #import "codesign.h"
 #import "coretrust_bug.h"
-#include <mach-o/fat.h>
-#import <mach-o/loader.h>
-// stub
-// stub
+#import "FAT.h"
+#import "MachO.h"
+#import "FileStream.h"
+#import "Host.h"
 #endif
 
 #import <SpringBoardServices/SpringBoardServices.h>

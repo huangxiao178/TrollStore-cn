@@ -15,10 +15,10 @@
 	[super loadView];
 
 	TSAppTableViewController* appTableVC = [[TSAppTableViewController alloc] init];
-	appTableVC.title = @"Apps";
+	appTableVC.title = @"应用";
 
 	TSSettingsListController* settingsListVC = [[TSSettingsListController alloc] init];
-	settingsListVC.title = @"Settings";
+	settingsListVC.title = @"设置";
 
 	UINavigationController* appNavigationController = [[UINavigationController alloc] initWithRootViewController:appTableVC];
 	UINavigationController* settingsNavigationController = [[UINavigationController alloc] initWithRootViewController:settingsListVC];
@@ -26,7 +26,7 @@
 	appNavigationController.tabBarItem.image = [UIImage systemImageNamed:@"square.stack.3d.up.fill"];
 	settingsNavigationController.tabBarItem.image = [UIImage systemImageNamed:@"gear"];
 
-	self.title = @"Root View Controller";
+	self.title = @"巨魔苹果玩家";
 	self.viewControllers = @[appNavigationController, settingsNavigationController];
 }
 

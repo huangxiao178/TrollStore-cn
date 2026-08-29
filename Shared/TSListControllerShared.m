@@ -1,8 +1,17 @@
 #import "TSListControllerShared.h"
 #import "TSUtil.h"
 #import "TSPresentationDelegate.h"
+#import "JumoLicenseGate.h"
 
 @implementation TSListControllerShared
+
+- (BOOL)jumoEnsureOperationAllowed
+{
+	JumoLicenseGate *gate = [JumoLicenseGate sharedGate];
+	if(!gate.enforcementEnabled || gate.operationAllowed) return YES;
+	[gate presentBlockedMessageFrom:self];
+	return NO;
+}
 
 - (BOOL)isTrollStore
 {
@@ -112,16 +121,19 @@
 
 - (void)installTrollStorePressed
 {
+	if(![self jumoEnsureOperationAllowed]) return;
 	[self _installTrollStoreComingFromUpdateFlow:NO];
 }
 
 - (void)updateTrollStorePressed
 {
+	if(![self jumoEnsureOperationAllowed]) return;
 	[self _installTrollStoreComingFromUpdateFlow:YES];
 }
 
 - (void)rebuildIconCachePressed
 {
+	if(![self jumoEnsureOperationAllowed]) return;
 	[TSPresentationDelegate startActivity:@"正在重建图标缓存"];
 
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
@@ -137,6 +149,7 @@
 
 - (void)refreshAppRegistrationsPressed
 {
+	if(![self jumoEnsureOperationAllowed]) return;
 	[TSPresentationDelegate startActivity:@"正在刷新"];
 
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
@@ -153,6 +166,7 @@
 
 - (void)uninstallPersistenceHelperPressed
 {
+	if(![self jumoEnsureOperationAllowed]) return;
 	if([self isTrollStore])
 	{
 		spawnRoot(rootHelperPath(), @[@"uninstall-persistence-helper"], nil, nil);
@@ -195,6 +209,7 @@
 
 - (void)uninstallTrollStorePressed
 {
+	if(![self jumoEnsureOperationAllowed]) return;
 	UIAlertController* uninstallAlert = [UIAlertController alertControllerWithTitle:@"卸载" message:@"You are about to uninstall TrollStore, do you want to preserve the apps installed by it?" preferredStyle:UIAlertControllerStyleAlert];
 	
 	UIAlertAction* uninstallAllAction = [UIAlertAction actionWithTitle:@"卸载巨魔商店，卸载所有应用" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)

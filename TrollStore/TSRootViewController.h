@@ -2,4 +2,6 @@
 
 @interface TSRootViewController : UITabBarController
 
+- (void)refreshJumoLicense;
+
 @end

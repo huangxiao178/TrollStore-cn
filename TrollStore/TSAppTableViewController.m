@@ -4,6 +4,7 @@
 #import <TSPresentationDelegate.h>
 #import "TSInstallationController.h"
 #import "TSUtil.h"
+#import "JumoLicenseGate.h"
 @import UniformTypeIdentifiers;
 
 #define ICON_FORMAT_IPAD 8
@@ -190,6 +191,12 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 
 - (void)openAppPressedForRowAtIndexPath:(NSIndexPath*)indexPath enableJIT:(BOOL)enableJIT
 {
+	JumoLicenseGate *jumoGate = [JumoLicenseGate sharedGate];
+	if(enableJIT && jumoGate.enforcementEnabled && !jumoGate.operationAllowed)
+	{
+		[[JumoLicenseGate sharedGate] presentBlockedMessageFrom:self];
+		return;
+	}
 	TSApplicationsManager* appsManager = [TSApplicationsManager sharedInstance];
 
 	TSAppInfo* appInfo = _cachedAppInfos[indexPath.row];
@@ -258,6 +265,12 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 
 - (void)changeAppRegistrationForRowAtIndexPath:(NSIndexPath*)indexPath toState:(NSString*)newState
 {
+	JumoLicenseGate *jumoGate = [JumoLicenseGate sharedGate];
+	if(jumoGate.enforcementEnabled && !jumoGate.operationAllowed)
+	{
+		[[JumoLicenseGate sharedGate] presentBlockedMessageFrom:self];
+		return;
+	}
 	TSAppInfo* appInfo = _cachedAppInfos[indexPath.row];
 
 	if([newState isEqualToString:@"User"])
@@ -305,6 +318,12 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 
 - (void)uninstallPressedForRowAtIndexPath:(NSIndexPath*)indexPath
 {
+	JumoLicenseGate *jumoGate = [JumoLicenseGate sharedGate];
+	if(jumoGate.enforcementEnabled && !jumoGate.operationAllowed)
+	{
+		[[JumoLicenseGate sharedGate] presentBlockedMessageFrom:self];
+		return;
+	}
 	TSApplicationsManager* appsManager = [TSApplicationsManager sharedInstance];
 
 	TSAppInfo* appInfo = _cachedAppInfos[indexPath.row];

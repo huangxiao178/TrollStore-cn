@@ -1,0 +1,76 @@
+name: Build Jumo license-gated TrollStore test tar
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-license-test:
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - name: Checkout this source tree
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          brew install openssl@3 libarchive pkg-config ldid || true
+          export THEOS=~/theos
+          if [ ! -d "$THEOS/bin" ]; then
+            git clone --recursive https://github.com/theos/theos.git "$THEOS"
+          fi
+          mkdir -p "$THEOS/sdks"
+          curl -sL "https://github.com/theos/sdks/archive/master.zip" -o /tmp/sdks.zip
+          unzip -qo /tmp/sdks.zip -d /tmp
+          cp -rn /tmp/sdks-master/*.sdk "$THEOS/sdks/" 2>/dev/null || true
+          rm -rf /tmp/sdks-master /tmp/sdks.zip
+          if [ ! -d "$THEOS/sdks/iPhoneOS16.5.sdk" ]; then
+            XCODE_SDK=$(xcrun --sdk iphoneos --show-sdk-path 2>/dev/null)
+            [ -n "$XCODE_SDK" ] && [ -d "$XCODE_SDK" ] && ln -sfn "$XCODE_SDK" "$THEOS/sdks/iPhoneOS16.5.sdk"
+          fi
+          echo "THEOS=$THEOS" >> "$GITHUB_ENV"
+          echo "PATH=$THEOS/bin:$PATH" >> "$GITHUB_ENV"
+
+      - name: Build every tar component from the same source revision
+        run: |
+          make -C Exploits/fastPathSign clean
+          make -C Exploits/fastPathSign
+          make -C RootHelper clean
+          make -C RootHelper DEBUG=0
+          make -C TrollStore clean
+          make -C TrollStore FINALPACKAGE=1
+          mkdir -p _build
+          make -C TrollHelper clean
+          make -C TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1
+          cp TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper _build/PersistenceHelper_Embedded
+
+      - name: Add the iOS ldid binary used by the complete tar
+        run: |
+          if [ -f /opt/homebrew/bin/ldid ]; then
+            cp /opt/homebrew/bin/ldid TrollStore/.theos/obj/TrollStore.app/ldid
+          elif [ -f /usr/local/bin/ldid ]; then
+            cp /usr/local/bin/ldid TrollStore/.theos/obj/TrollStore.app/ldid
+          else
+            curl -fsSL "https://github.com/opa334/TrollStore/releases/download/3.0/ldid" \
+              -o TrollStore/.theos/obj/TrollStore.app/ldid
+          fi
+          printf 'v2.1.5-procursus7-new\n' > TrollStore/.theos/obj/TrollStore.app/ldid.version
+          chmod +x TrollStore/.theos/obj/TrollStore.app/ldid
+          test -s TrollStore/.theos/obj/TrollStore.app/ldid
+
+      - name: Assemble complete test TrollStore.tar
+        run: |
+          cp RootHelper/.theos/obj/trollstorehelper TrollStore/.theos/obj/TrollStore.app/trollstorehelper
+          cp _build/PersistenceHelper_Embedded TrollStore/.theos/obj/TrollStore.app/PersistenceHelper
+          export COPYFILE_DISABLE=1
+          tar -czvf _build/TrollStore_license_test.tar -C TrollStore/.theos/obj TrollStore.app
+          test -s _build/TrollStore_license_test.tar
+          tar -tzf _build/TrollStore_license_test.tar | grep -E 'TrollStore.app/(TrollStore|PersistenceHelper|trollstorehelper|ldid|Info.plist)$'
+
+      - name: Upload isolated test artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TrollStore-license-test
+          path: _build/TrollStore_license_test.tar
+          retention-days: 30

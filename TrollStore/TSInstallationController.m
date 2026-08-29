@@ -4,13 +4,27 @@
 #import "TSAppInfo.h"
 #import <TSUtil.h>
 #import <TSPresentationDelegate.h>
+#import "JumoLicenseGate.h"
 
 extern NSUserDefaults* trollStoreUserDefaults(void);
 
 @implementation TSInstallationController
 
++ (BOOL)jumoEnsureOperationAllowed
+{
+	JumoLicenseGate *gate = [JumoLicenseGate sharedGate];
+	if(!gate.enforcementEnabled || gate.operationAllowed) return YES;
+	[gate presentBlockedMessageFrom:TSPresentationDelegate.presentationViewController];
+	return NO;
+}
+
 + (void)handleAppInstallFromFile:(NSString*)pathToIPA forceInstall:(BOOL)force completion:(void (^)(BOOL, NSError*))completionBlock
 {
+	if(![self jumoEnsureOperationAllowed])
+	{
+		if(completionBlock) completionBlock(NO, [NSError errorWithDomain:@"JumoLicense" code:403 userInfo:@{NSLocalizedDescriptionKey: @"授权已冻结，无法安装应用"}]);
+		return;
+	}
 	dispatch_async(dispatch_get_main_queue(), ^
 	{
 		[TSPresentationDelegate startActivity:@"Installing"];
@@ -168,6 +182,11 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 + (void)handleAppInstallFromRemoteURL:(NSURL*)remoteURL completion:(void (^)(BOOL, NSError*))completionBlock
 {
+	if(![self jumoEnsureOperationAllowed])
+	{
+		if(completionBlock) completionBlock(NO, [NSError errorWithDomain:@"JumoLicense" code:403 userInfo:@{NSLocalizedDescriptionKey: @"授权已冻结，无法安装应用"}]);
+		return;
+	}
 	NSURLRequest* downloadRequest = [NSURLRequest requestWithURL:remoteURL];
 
 	dispatch_async(dispatch_get_main_queue(), ^

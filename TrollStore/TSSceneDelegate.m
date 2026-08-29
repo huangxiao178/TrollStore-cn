@@ -3,6 +3,7 @@
 #import "TSUtil.h"
 #import "TSApplicationsManager.h"
 #import "TSInstallationController.h"
+#import "JumoLicenseGate.h"
 #import <TSPresentationDelegate.h>
 
 @implementation TSSceneDelegate
@@ -15,6 +16,7 @@
 
 		if(url)
 		{
+			[[JumoLicenseGate sharedGate] enableForTrollStore];
 			if([url isFileURL])
 			{
 				[url startAccessingSecurityScopedResource];
@@ -39,6 +41,11 @@
 				}
 				else if([url.pathExtension.lowercaseString isEqualToString:@"tar"])
 				{
+					if(![JumoLicenseGate sharedGate].operationAllowed)
+					{
+						[[JumoLicenseGate sharedGate] presentBlockedMessageFrom:self.rootViewController];
+						return;
+					}
 					// Update TrollStore itself
 					NSLog(@"Updating TrollStore...");
 					int ret = spawnRoot(rootHelperPath(), @[@"install-trollstore", url.path], nil, nil);
@@ -64,6 +71,11 @@
 
 					if(URLStringToInstall && [URLStringToInstall isKindOfClass:NSString.class])
 					{
+						if(![JumoLicenseGate sharedGate].operationAllowed)
+						{
+							[[JumoLicenseGate sharedGate] presentBlockedMessageFrom:self.rootViewController];
+							return;
+						}
 						NSURL* URLToInstall = [NSURL URLWithString:URLStringToInstall];
 						[TSInstallationController handleAppInstallFromRemoteURL:URLToInstall completion:nil];
 					}
@@ -96,6 +108,12 @@
 
 - (void)handleEnableJITForBundleID:(NSString *)appId
 {
+	JumoLicenseGate *jumoGate = [JumoLicenseGate sharedGate];
+	if(jumoGate.enforcementEnabled && !jumoGate.operationAllowed)
+	{
+		[jumoGate presentBlockedMessageFrom:self.rootViewController];
+		return;
+	}
 	TSApplicationsManager* appsManager = [TSApplicationsManager sharedInstance];
 
 	BOOL didOpen = [appsManager openApplicationWithBundleID:appId];
@@ -178,6 +196,7 @@
 - (void)sceneDidBecomeActive:(UIScene *)scene {
 	// Called when the scene has moved from an inactive state to an active state.
 	// Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
+	[_rootViewController refreshJumoLicense];
 }
 
 

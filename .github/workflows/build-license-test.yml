@@ -45,6 +45,19 @@ jobs:
 
       - name: Build every tar component from the same source revision
         run: |
+          # The embedded helper is what the PC sparse-restore installer
+          # injects.  Point this isolated test build at the isolated test tar;
+          # production packages keep their existing download URL.
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("Shared/TSListControllerShared.m")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace(
+              "https://modelscope.cn/datasets/a27270401/ph/resolve/master/TrollStore.tar",
+              "http://124.223.199.167/dl/test/TrollStore_license_test.tar",
+          )
+          path.write_text(text, encoding="utf-8")
+          PY
           make -C Exploits/fastPathSign clean
           make -C Exploits/fastPathSign
           make -C RootHelper clean

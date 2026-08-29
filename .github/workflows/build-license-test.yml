@@ -15,6 +15,15 @@ jobs:
 
       - name: Install build dependencies
         run: |
+          # The fork keeps .gitmodules but its current master does not carry
+          # the ChOma gitlink, so checkout's submodules: recursive is not
+          # enough on its own.  Fetch the exact dependency before compiling.
+          if [ ! -f ChOma/src/FAT.h ] || [ ! -f ChOma/src/CSBlob.h ]; then
+            rm -rf ChOma
+            git clone --depth 1 https://github.com/opa334/ChOma.git ChOma
+          fi
+          test -f ChOma/src/FAT.h
+          test -f ChOma/src/CSBlob.h
           brew install openssl@3 libarchive pkg-config ldid || true
           export THEOS=~/theos
           if [ ! -d "$THEOS/bin" ]; then

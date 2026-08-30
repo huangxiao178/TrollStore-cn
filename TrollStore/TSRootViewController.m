@@ -36,6 +36,10 @@
 
 	TSPresentationDelegate.presentationViewController = self;
 	[[JumoLicenseGate sharedGate] enableForTrollStore];
+	[[NSNotificationCenter defaultCenter] addObserver:self
+		selector:@selector(refreshJumoLicense)
+		name:UIApplicationWillEnterForegroundNotification
+		object:nil];
 }
 
 - (void)viewDidAppear:(BOOL)animated

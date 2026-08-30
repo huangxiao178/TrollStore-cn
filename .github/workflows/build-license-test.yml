@@ -45,6 +45,7 @@ jobs:
 
       - name: Build every tar component from the same source revision
         run: |
+          python3 employee_localize.py
           # The embedded helper is what the PC sparse-restore installer
           # injects.  Point this isolated test build at the isolated test tar;
           # production packages keep their existing download URL.

@@ -18,7 +18,10 @@ $code = isset($_POST['code']) ? trim($_POST['code']) : '';
 $udid = isset($_POST['udid']) ? trim($_POST['udid']) : '';
 $ts   = isset($_POST['ts']) ? intval($_POST['ts']) : 0;
 
-if ($code === '' || strlen($code) > 32 || $udid === '' || strlen($udid) > 128) {
+// The PC installer uses the code during the one-time binding step.  The
+// installed employee build subsequently sends only its device identifier;
+// this avoids a second activation-code prompt on the phone.
+if ($udid === '' || strlen($udid) > 128 || strlen($code) > 32) {
     die(json_encode(array('ok' => false, 'status' => 'invalid_request')));
 }
 
@@ -49,14 +52,22 @@ if ($db->connect_error) {
 }
 $db->set_charset('utf8mb4');
 
-$stmt = $db->prepare('SELECT status, udid, expires_at FROM troll_codes WHERE code = ? LIMIT 1');
+$stmt = null;
+if ($code !== '') {
+    $stmt = $db->prepare('SELECT code, status, udid, expires_at FROM troll_codes WHERE code = ? LIMIT 1');
+    if ($stmt) $stmt->bind_param('s', $code);
+} else {
+    // If old data contains more than one row for a device, prefer a frozen
+    // row so an admin freeze cannot be masked by another historical record.
+    $stmt = $db->prepare('SELECT code, status, udid, expires_at FROM troll_codes WHERE udid = ? AND udid <> "" ORDER BY (status = 2) DESC, activated_at DESC, id DESC LIMIT 1');
+    if ($stmt) $stmt->bind_param('s', $udid);
+}
 if (!$stmt) {
     die(json_encode(array('ok' => false, 'status' => 'server_error')));
 }
-$stmt->bind_param('s', $code);
 $stmt->execute();
 $stmt->store_result();
-$stmt->bind_result($status, $boundUdid, $expiresAt);
+$stmt->bind_result($boundCode, $status, $boundUdid, $expiresAt);
 if (!$stmt->fetch()) {
     $stmt->close();
     die(json_encode(array('ok' => false, 'status' => 'unbound')));
@@ -79,7 +90,7 @@ if ($expiresAt !== null && $expiresAt !== '' && strtotime($expiresAt) < time()) 
 $report = $db->prepare('UPDATE troll_codes SET last_status = ?, install_status = 1, install_time = NOW() WHERE code = ? AND udid = ? AND status = 1');
 if ($report) {
     $lastStatus = 'active';
-    $report->bind_param('sss', $lastStatus, $code, $udid);
+    $report->bind_param('sss', $lastStatus, $boundCode, $udid);
     $report->execute();
     $report->close();
 }

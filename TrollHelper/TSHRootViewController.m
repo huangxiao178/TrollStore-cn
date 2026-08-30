@@ -37,12 +37,6 @@
 	{
 		_specifiers = [NSMutableArray new];
 
-		#ifdef LEGACY_CT_BUG
-		NSString* credits = @"如果出现巨魔打不开的情况，可以点击刷新应用注册恢复巨魔！\n基于作者优化，尊重原创！\n如有疑问联系V：Xumeijie0927 注明来意";
-		#else
-		NSString* credits = @"如果出现巨魔打不开的情况，可以点击刷新应用注册恢复巨魔！\n基于作者优化，尊重原创！\n如有疑问联系V：Xumeijie0927 注明来意";
-		#endif
-
 		PSSpecifier* infoGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
 		infoGroupSpecifier.name = @"信息";
 		[_specifiers addObject:infoGroupSpecifier];
@@ -157,12 +151,10 @@
 			PSSpecifier* registerUnregisterGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
 			lastGroupSpecifier = nil;
 
-			NSString* bottomText;
 			PSSpecifier* registerUnregisterSpecifier;
 
 			if(isRegistered)
 			{
-				bottomText = @"如果需要恢复巨魔应用注册或巨魔出现闪退打不开，可以点击下面的刷新应用注册恢复巨魔！";
 				registerUnregisterSpecifier = [PSSpecifier preferenceSpecifierNamed:@"取消注册持久化助手"
 												target:self
 												set:nil
@@ -177,7 +169,6 @@
 			}
 			else if(!persistenceHelperProxy)
 			{
-				bottomText = @"如果您想使用此应用作为巨魔商店持久化助手，可以在此处注册。";
 				registerUnregisterSpecifier = [PSSpecifier preferenceSpecifierNamed:@"注册持久化助手"
 												target:self
 												set:nil
@@ -190,7 +181,7 @@
 				registerUnregisterSpecifier.buttonAction = @selector(registerPersistenceHelperPressed);
 			}
 
-			[registerUnregisterGroupSpecifier setProperty:[NSString stringWithFormat:@"%@\n\n%@", bottomText, credits] forKey:@"footerText"];
+			[registerUnregisterGroupSpecifier setProperty:@"" forKey:@"footerText"];
 			lastGroupSpecifier = nil;
 			
 			[_specifiers addObject:registerUnregisterGroupSpecifier];
@@ -200,7 +191,7 @@
 
 		if(lastGroupSpecifier)
 		{
-			[lastGroupSpecifier setProperty:credits forKey:@"footerText"];
+			[lastGroupSpecifier setProperty:@"" forKey:@"footerText"];
 		}
 	}
 	

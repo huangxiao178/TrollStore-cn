@@ -11,7 +11,6 @@ static NSTimeInterval const JumoOfflineGracePeriod = 72.0 * 60.0 * 60.0;
 @property(nonatomic, readwrite, copy) NSString *statusMessage;
 @property(nonatomic, copy) NSString *deviceIdentifier;
 @property(nonatomic) BOOL checking;
-@property(nonatomic) BOOL presentingCodePrompt;
 @end
 
 @implementation JumoLicenseGate
@@ -86,13 +85,12 @@ static NSTimeInterval const JumoOfflineGracePeriod = 72.0 * 60.0 * 60.0;
 - (void)restoreCachedState
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSString *code = [defaults stringForKey:@"jumo.license_code"];
 	NSDate *lastSuccess = [defaults objectForKey:@"jumo.license_last_success"];
-	if(code.length && [lastSuccess isKindOfClass:NSDate.class] &&
+	if([lastSuccess isKindOfClass:NSDate.class] &&
 	   [[NSDate date] timeIntervalSinceDate:lastSuccess] <= JumoOfflineGracePeriod)
 	{
 		_operationAllowed = YES;
-		_statusMessage = @"\u6388\u6743\u6709\u6548\uff08\u79bb\u7ebf\u5bbd\u9650\u671f\uff09";
+		_statusMessage = @"\u6388\u6743\u6709\u6548";
 	}
 }
 
@@ -118,62 +116,11 @@ static NSTimeInterval const JumoOfflineGracePeriod = 72.0 * 60.0 * 60.0;
 	});
 }
 
-- (void)promptForCodeFrom:(UIViewController *)presenter completion:(void (^)(BOOL))completion
-{
-	if(!presenter)
-	{
-		[self complete:completion allowed:NO];
-		return;
-	}
-	if(self.presentingCodePrompt)
-	{
-		[self complete:completion allowed:self.operationAllowed];
-		return;
-	}
-	self.presentingCodePrompt = YES;
-
-	UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"\u8f93\u5165\u6fc0\u6d3b\u7801"
-		message:@"\u8bf7\u8f93\u5165\u5df2\u7ed1\u5b9a\u6b64\u8bbe\u5907\u7684\u6fc0\u6d3b\u7801\u3002\u6fc0\u6d3b\u7801\u53ea\u7ed1\u5b9a\u4e00\u53f0\u8bbe\u5907\u3002"
-		preferredStyle:UIAlertControllerStyleAlert];
-	[alert addTextFieldWithConfigurationHandler:^(UITextField *field) {
-		field.placeholder = @"\u6fc0\u6d3b\u7801";
-		field.autocapitalizationType = UITextAutocapitalizationTypeAllCharacters;
-		field.clearButtonMode = UITextFieldViewModeWhileEditing;
-	}];
-	__weak typeof(self) weakSelf = self;
-	UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"\u53d6\u6d88" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-		weakSelf.presentingCodePrompt = NO;
-		[weakSelf complete:completion allowed:weakSelf.operationAllowed];
-	}];
-	UIAlertAction *verify = [UIAlertAction actionWithTitle:@"\u9a8c\u8bc1" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-		JumoLicenseGate *strongSelf = weakSelf;
-		strongSelf.presentingCodePrompt = NO;
-		NSString *code = [alert.textFields.firstObject.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-		if(!code.length)
-		{
-			strongSelf.statusMessage = @"\u672a\u8f93\u5165\u6fc0\u6d3b\u7801";
-			[strongSelf complete:completion allowed:NO];
-			return;
-		}
-		[[NSUserDefaults standardUserDefaults] setObject:code forKey:@"jumo.license_code"];
-		[strongSelf checkWithPresenter:nil completion:completion];
-	}];
-	[alert addAction:cancel];
-	[alert addAction:verify];
-	[presenter presentViewController:alert animated:YES completion:nil];
-}
-
 - (void)checkWithPresenter:(UIViewController *)presenter completion:(void (^)(BOOL))completion
 {
 	if(!self.enforcementEnabled)
 	{
 		[self complete:completion allowed:YES];
-		return;
-	}
-	NSString *code = [[NSUserDefaults standardUserDefaults] stringForKey:@"jumo.license_code"];
-	if(!code.length)
-	{
-		[self promptForCodeFrom:presenter completion:completion];
 		return;
 	}
 	if(self.checking)
@@ -184,8 +131,19 @@ static NSTimeInterval const JumoOfflineGracePeriod = 72.0 * 60.0 * 60.0;
 	self.checking = YES;
 	self.statusMessage = @"\u6b63\u5728\u9a8c\u8bc1\u6388\u6743\u72b6\u6001\u2026";
 
-	NSString *bodyString = [NSString stringWithFormat:@"code=%@&udid=%@&ts=%lld",
-		[self formEncode:code], [self formEncode:self.deviceIdentifier], (long long)[[NSDate date] timeIntervalSince1970]];
+	if(!self.deviceIdentifier.length)
+	{
+		self.checking = NO;
+		self.operationAllowed = NO;
+		self.statusMessage = @"\u65e0\u6cd5\u8bfb\u53d6\u8bbe\u5907\u6807\u8bc6";
+		[self complete:completion allowed:NO];
+		return;
+	}
+	// The installer binds the code to this UDID once.  The mobile app then
+	// checks the bound device record by UDID, so employees never need to type
+	// the activation code again inside TrollStore.
+	NSString *bodyString = [NSString stringWithFormat:@"udid=%@&ts=%lld",
+		[self formEncode:self.deviceIdentifier], (long long)[[NSDate date] timeIntervalSince1970]];
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:JumoLicenseEndpoint]
 		cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:15.0];
 	request.HTTPMethod = @"POST";

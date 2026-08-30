@@ -27,7 +27,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 	}
 	dispatch_async(dispatch_get_main_queue(), ^
 	{
-		[TSPresentationDelegate startActivity:@"Installing"];
+		[TSPresentationDelegate startActivity:@"正在安装"];
 		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
 		{
 			// Install IPA
@@ -52,13 +52,13 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 					} else if (ret == 171) {
 						// recoverable error
 						UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Install Error %d", ret] message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
-						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"关闭" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 						{
 							if(completionBlock) completionBlock(NO, error);
 						}];
 						[errorAlert addAction:closeAction];
 
-						UIAlertAction* forceInstallAction = [UIAlertAction actionWithTitle:@"Force Installation" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+						UIAlertAction* forceInstallAction = [UIAlertAction actionWithTitle:@"强制安装" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 						{
 							[self handleAppInstallFromFile:pathToIPA forceInstall:YES completion:completionBlock];
 						}];
@@ -68,13 +68,13 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 					} else if (ret == 182) {
 						// non-fatal informative message
 						UIAlertController* rebootNotification = [UIAlertController alertControllerWithTitle:@"Reboot Required" message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
-						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
+						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"关闭" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
 						{
 							if(completionBlock) completionBlock(YES, nil);
 						}];
 						[rebootNotification addAction:closeAction];
 
-						UIAlertAction* rebootAction = [UIAlertAction actionWithTitle:@"Reboot Now" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+						UIAlertAction* rebootAction = [UIAlertAction actionWithTitle:@"立即重启" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 						{
 							if(completionBlock) completionBlock(YES, nil);
 							spawnRoot(rootHelperPath(), @[@"reboot"], nil, nil);
@@ -85,7 +85,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 					} else if (ret == 184) {
 						// warning
 						UIAlertController* warningAlert = [UIAlertController alertControllerWithTitle:@"Warning" message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
-						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
+						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"关闭" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
 						{
 							if(completionBlock) completionBlock(YES, nil);
 						}];
@@ -95,10 +95,10 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 					} else {
 						// unrecoverable error
 						UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Install Error %d", ret] message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
-						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"关闭" style:UIAlertActionStyleDefault handler:nil];
 						[errorAlert addAction:closeAction];
 
-						UIAlertAction* copyLogAction = [UIAlertAction actionWithTitle:@"Copy Debug Log" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+						UIAlertAction* copyLogAction = [UIAlertAction actionWithTitle:@"复制调试日志" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 						{
 							UIPasteboard* pasteboard = [UIPasteboard generalPasteboard];
 							pasteboard.string = log;
@@ -149,13 +149,13 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 				UIAlertController* installAlert = [UIAlertController alertControllerWithTitle:@"" message:@"" preferredStyle:UIAlertControllerStyleAlert];
 				installAlert.attributedTitle = [appInfo detailedInfoTitle];
 				installAlert.attributedMessage = [appInfo detailedInfoDescription];
-				UIAlertAction* installAction = [UIAlertAction actionWithTitle:@"Install" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action)
+				UIAlertAction* installAction = [UIAlertAction actionWithTitle:@"安装" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action)
 				{
 					[self handleAppInstallFromFile:pathToIPA completion:completionBlock];
 				}];
 				[installAlert addAction:installAction];
 
-				UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
+				UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
 				{
 					if(completionBlock) completionBlock(NO, nil);
 				}];
@@ -166,7 +166,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 			else
 			{
 				UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Parse Error %ld", error.code] message:error.localizedDescription preferredStyle:UIAlertControllerStyleAlert];
-				UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+				UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"关闭" style:UIAlertActionStyleDefault handler:nil];
 				[errorAlert addAction:closeAction];
 
 				[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
@@ -200,7 +200,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 					if(error)
 					{
 						UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Error downloading app: %@", error] preferredStyle:UIAlertControllerStyleAlert];
-						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"关闭" style:UIAlertActionStyleDefault handler:nil];
 						[errorAlert addAction:closeAction];
 
 						[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:^
@@ -249,7 +249,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 				if(error)
 				{
 					UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Error downloading ldid: %@", error] preferredStyle:UIAlertControllerStyleAlert];
-					UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+					UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"关闭" style:UIAlertActionStyleDefault handler:nil];
 					[errorAlert addAction:closeAction];
 
 					dispatch_async(dispatch_get_main_queue(), ^
